@@ -5,7 +5,10 @@ const mongoose = require("mongoose");
 const app = express();
 const path = require("path");
 const fs = require("fs/promises");
+const usersRouter = require("./Routes/usersRouter");
+
 app.use("/", express.static(path.join(__dirname, "public")));
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(
@@ -14,7 +17,7 @@ app.use(
     credentials: true,
   })
 );
-
+app.use("/apis/v1/users", usersRouter);
 app.get("/", (req, res) => {
   res.send("Hello from MERN stack!");
 });
