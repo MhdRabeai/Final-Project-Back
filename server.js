@@ -1,14 +1,14 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const uri =
-  "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
-
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const dotenv = require("dotenv");
+const { isUser } = require("./middleware/auth");
 const app = express();
 const path = require("path");
 const fs = require("fs/promises");
 const usersRouter = require("./Routes/usersRouter");
+const multer = require("multer");
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -16,6 +16,8 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+const uri =
+  "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
 app.use("/", express.static(path.join(__dirname, "public")));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());

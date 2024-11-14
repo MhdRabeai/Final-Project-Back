@@ -1,10 +1,17 @@
-const express = require("express");
-const router = express.Router();
 const fs = require("fs/promises");
 const path = require("path");
 const dotenv = require("dotenv");
-// const { isUser } = require("./middleware/auth");
-
+const router = express.Router();
+const { isUser } = require("./middleware/auth");
+const { MongoClient, ServerApiVersion } = require("mongodb");
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+const { register, login, logout } = require("./controller/auth");
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -21,8 +28,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 dotenv.config();
 
-module.exports = function (app) {
-  app.get("/", isUser, async (req, res) => {
+module.exports = () => {
+  router.get("/", isUser, async (req, res) => {
     const data = await fs.readFile(
       path.join(__dirname, "./DB/myjsonfile.json"),
       "utf8"
@@ -30,7 +37,7 @@ module.exports = function (app) {
     const user = JSON.parse(data).find((ele) => ele.name === req.user["name"]);
     res.send(JSON.stringify(user));
   });
-  app.get("/download/:filename", (req, res) => {
+  router.get("/download/:filename", (req, res) => {
     const filename = req.params.filename;
     const filePath = path.join(__dirname, "uploads", filename);
 
@@ -41,18 +48,7 @@ module.exports = function (app) {
       }
     });
   });
-  app.post("/login", login);
-  app.post("/register", upload.single("myfile"), register);
-  app.get("/logout", logout);
-
-  // **********************
-  // app.get("/register", (req, res) => {
-  //   res.sendFile(path.join(__dirname, "/public/signup.html"));
-  // });
-  // app.get("/login", (req, res) => {
-  //   res.sendFile(path.join(__dirname, "/public/sginin.html"));
-  // });
-  app.get("/counter", counter);
-  app.post("/counter/inc", incCounter);
-  app.post("/counter/dis", disCounter);
+  router.post("/login", login);
+  router.post("/register", upload.single("myfile"), register);
+  router.get("/logout", logout);
 };
