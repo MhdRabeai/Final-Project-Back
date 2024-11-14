@@ -11,8 +11,9 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
-const { register, login, logout } = require("./controller/auth");
+const { userRegister, login, logout, register } = require("./controller/auth");
 const multer = require("multer");
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -49,6 +50,7 @@ module.exports = () => {
     });
   });
   router.post("/login", login);
+  router.post("/userRegister", upload.single("myfile"), userRegister);
   router.post("/register", upload.single("myfile"), register);
   router.get("/logout", logout);
 };
