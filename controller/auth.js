@@ -1,4 +1,5 @@
 let bcryptjs = require("bcryptjs");
+const nodemailer = require("nodemailer");
 const fs = require("fs/promises");
 const path = require("path");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -13,13 +14,21 @@ const client = new MongoClient(uri, {
   },
 });
 const db = client.db("global");
+// require('dotenv').config();
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.PASSWORD,
+  },
+});
 // ******************
 // Rols
 const userCollection = db.collection("user");
 const patientCollection = db.collection("patient");
 const adminCollection = db.collection("admin");
 const doctorCollection = db.collection("doctor");
-const pharmacyCollection = db.collection("pharmacy");
+const pharmacistCollection = db.collection("pharmacist");
 // ***********
 const appointmentCollection = db.collection("appointment");
 const sessionCollection = db.collection("session");
@@ -41,8 +50,6 @@ async function connectToDatabase() {
   }
 }
 exports.userRegister = async (req, res) => {
-  const collections = await db.listCollections().toArray();
-  const collectionNames = collections.map((col) => col.name);
   const {
     feeling,
     challenges,
@@ -58,71 +65,131 @@ exports.userRegister = async (req, res) => {
     age,
     gender,
   } = req.body;
+  if (
+    feeling &&
+    challenges &&
+    areas &&
+    prev_therapy &&
+    self_harm &&
+    illness &&
+    life_changes &&
+    name &&
+    email &&
+    password &&
+    phone &&
+    age &&
+    gender
+  ) {
+    const collections = await db.listCollections().toArray();
+    const collectionNames = collections.map((col) => col.name);
+    const confirmationCode = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
+    try {
+      await connectToDatabase();
+      if (!collectionNames.includes("user")) {
+        await db.createCollection("user");
+        console.log('Collection "user" created');
+      }
+      if (!collectionNames.includes("patient")) {
+        await db.createCollection("patient");
+        console.log('Collection "patient" created');
+      }
+      console.log("Checking if user exists...");
+      const user = await userCollection.findOne({ email });
+
+      if (user) {
+        console.log("User already exists");
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      console.log("Creating new user...");
+      const salt = await bcryptjs.genSalt(10);
+      const hashedCode = await bcryptjs.hash(confirmationCode, salt);
+      const hashedPassword = await bcryptjs.hash(password, salt);
+
+      const userData = {
+        _id: new ObjectId(),
+        name,
+        email,
+        password: hashedPassword,
+        hashedCode,
+        age,
+        gender,
+        phone,
+        isActive: false,
+        avatar: req.file?.filename || "default-avatar.jpg",
+        role: "user",
+        createdAt: new Date(),
+      };
+      console.log("userData", userData);
+      console.log("Inserting user data into database...");
+
+      const userInsertResult = await userCollection.insertOne(userData);
+      console.log("User inserted successfully", userInsertResult);
+
+      const patientData = {
+        user_id: userData._id,
+        questions: {
+          feeling,
+          challenges,
+          areas,
+          prev_therapy,
+          self_harm,
+          illness,
+          life_changes,
+          any_medication,
+        },
+      };
+      console.log("Inserting patient data into database...");
+      const patientInsertResult = await patientCollection.insertOne(
+        patientData
+      );
+      console.log("Patient data inserted successfully", patientInsertResult);
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: "Confirmation email",
+
+        text: `Hello ${name},\n\nYour registration code is: ${confirmationCode}\n\nThank you for registering with us!`,
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log("Confirmation email sent!");
+      console.log("User registered successfully");
+
+      return res.status(200).json({ message: "User registered successfully" });
+    } catch (err) {
+      console.error("Server error:", err);
+      return res.status(500).json({ message: "Server error" });
+    } finally {
+      await client.close();
+    }
+  } else {
+    console.log("Invalid userData");
+    return res.status(400).json({ message: "Invalid userData" });
+  }
+};
+exports.verifyEmail = async (req, res) => {
+  const { email, confirmationCode } = req.body;
   try {
-    await connectToDatabase();
-    if (!collectionNames.includes("user")) {
-      await db.createCollection("user");
-      console.log('Collection "user" created');
-    }
-    if (!collectionNames.includes("patient")) {
-      await db.createCollection("patient");
-      console.log('Collection "patient" created');
-    }
-    console.log("Checking if user exists...");
     const user = await userCollection.findOne({ email });
-
-    if (user) {
-      console.log("User already exists");
-      return res.status(400).json({ message: "User already exists" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+    if (user.confirmationCode === confirmationCode) {
+      await userCollection.updateOne(
+        { email },
+        { $set: { isActive: true }, $unset: { confirmationCode: "" } }
+      );
 
-    console.log("Creating new user...");
-    const salt = await bcryptjs.genSalt(10);
-    const hashedPassword = await bcryptjs.hash(password, salt);
-
-    const userData = {
-      _id: new ObjectId(),
-      name,
-      email,
-      password: hashedPassword,
-      age,
-      gender,
-      phone,
-      avatar: req.file?.filename || "default-avatar.jpg",
-      role: "user",
-      createdAt: new Date(),
-    };
-    console.log("userData", userData);
-    console.log("Inserting user data into database...");
-
-    const userInsertResult = await userCollection.insertOne(userData);
-    console.log("User inserted successfully", userInsertResult);
-
-    const patientData = {
-      user_id: userData._id,
-      questions: {
-        feeling,
-        challenges,
-        areas,
-        prev_therapy,
-        self_harm,
-        illness,
-        life_changes,
-        any_medication,
-      },
-    };
-    console.log("Inserting patient data into database...");
-    const patientInsertResult = await patientCollection.insertOne(patientData);
-    console.log("Patient data inserted successfully", patientInsertResult);
-
-    console.log("User registered successfully");
-
-    return res.status(200).json({ message: "User registered successfully" });
-  } catch (err) {
-    console.error("Server error:", err);
+      return res.status(200).json({ message: "Email verified successfully!" });
+    } else {
+      return res.status(400).json({ message: "Invalid confirmation code" });
+    }
+  } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: "Server error" });
-  } finally {
-    await client.close();
   }
 };
 exports.register = async (req, res) => {
@@ -160,6 +227,7 @@ exports.register = async (req, res) => {
       phone,
       avatar: req.file?.filename || "default-avatar.jpg",
       role: "user",
+      isActive: false,
       createdAt: new Date(),
     };
     console.log("Inserting user data into database...");
@@ -204,13 +272,18 @@ exports.register = async (req, res) => {
       const doctorInsertResult = await doctorCollection.insertOne(doctorData);
       console.log("doctor data inserted successfully", doctorInsertResult);
     } else if (role == "pharmacist") {
-      const adminData = {
+      const pharmacistData = {
         user_id: userData._id,
-        Job_title: "admin",
+        Job_title: "pharmacist",
       };
-      console.log("Inserting admin data into database...");
-      const adminInsertResult = await adminCollection.insertOne(adminData);
-      console.log("admin data inserted successfully", adminInsertResult);
+      console.log("Inserting pharmacist data into database...");
+      const pharmacistInsertResult = await pharmacistCollection.insertOne(
+        pharmacistData
+      );
+      console.log(
+        "pharmacist data inserted successfully",
+        pharmacistInsertResult
+      );
     }
 
     console.log("User registered successfully");
@@ -220,6 +293,9 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// للتحقق لاحقًا إذا كانت القيمتان متطابقتين
+//  const isMatch = await bcrypt.compare(confirmationCode, hashedCode);
 
 // exports.login = async (req, res) => {
 //   const { name, password } = req.body;
