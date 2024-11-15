@@ -3,6 +3,8 @@ const fs = require("fs/promises");
 const path = require("path");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const { generateAccessToken } = require("../config/accessToken");
+const uri =
+  "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -42,8 +44,8 @@ exports.userRegister = async (req, res) => {
 exports.register = async (req, res) => {
   const userData = {};
   const patientData = {};
-  // const { name, email, password, age, gender, Phone,questions } = req.body;
-  const { questions } = req.body;
+  const { name, email, password, age, gender, Phone, questions } = req.body;
+
   var salt = await bcryptjs.genSalt(10);
   var hashedPassword = await bcryptjs.hash(password, salt);
 
@@ -59,9 +61,10 @@ exports.register = async (req, res) => {
     createdAt: Date.now(),
   });
   Object.assign(patientData, {
-    questions: questions,
+    // questions: questions,
   });
-  console.log(questions);
+
+  console.log(req.file);
   // try {
   //   const db = client.db("global");
   //   const userCollection = db.collection("user");

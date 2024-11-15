@@ -9,7 +9,8 @@ const path = require("path");
 const fs = require("fs/promises");
 const usersRouter = require("./Routes/usersRouter");
 const multer = require("multer");
-const routes = require("./Routes/routes");
+const uri =
+  "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -17,20 +18,19 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
-const uri =
-  "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
-app.use("/", express.static(path.join(__dirname, "public")));
+
+app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(
   cors({
     origin: "http://localhost:3000",
+    methods: ["POST", "GET", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
 );
-app.use("/apis/v1/users", usersRouter);
-app.use("/", routes);
+require("./Routes/routes")(app);
 
 app.listen(4000, () => {
   console.log(`Server listening on port ${4000}.`);
@@ -98,79 +98,79 @@ async function run() {
       );
     }
 
-    // if (!collectionNames.includes("patient")) {
-    //   await db.createCollection("patient", {
-    //     validator: {
-    //       $jsonSchema: {
-    //         bsonType: "object",
-    //         required: ["user_id", "questions"],
-    //         properties: {
-    //           user_id: {
-    //             bsonType: "string",
-    //             description: "user_id Must be String",
-    //           },
-    //           questions: {
-    //             bsonType: "array",
-    //             items: {
-    //               bsonType: "object",
-    //               properties: {
-    //                 feeling: {
-    //                   bsonType: "string",
-    //                   description: "feeling Must be String",
-    //                 },
-    //                 challenges: {
-    //                   bsonType: "array",
-    //                   items: {
-    //                     bsonType: "string",
-    //                     description: "items Must be String",
-    //                   },
-    //                 },
-    //                 areas: {
-    //                   bsonType: "array",
-    //                   description: "areas Must be String",
-    //                   items: {
-    //                     bsonType: "string",
-    //                     description: "items Must be String",
-    //                   },
-    //                 },
-    //                 prev_therapy: {
-    //                   bsonType: "string",
-    //                   description: "prev_therapy Must be String",
-    //                 },
-    //                 self_harm: {
-    //                   bsonType: "string",
-    //                   description: "self_harm Must be String",
-    //                 },
-    //                 life_changes: {
-    //                   bsonType: "string",
-    //                   description: "life_changes Must be String",
-    //                 },
-    //                 any_medication: {
-    //                   bsonType: "string",
-    //                   description: "any_medication Must be String",
-    //                 },
-    //                 illness: {
-    //                   bsonType: "array",
-    //                   description: "illness Must be String",
-    //                   items: {
-    //                     bsonType: "string",
-    //                     description: "items Must be String",
-    //                   },
-    //                 },
-    //               },
-    //             },
-    //           },
-    //         },
-    //       },
-    //     },
-    //   });
-    //   await db
-    //     .collection("patient")
-    //     .createIndex({ user_id: 1 }, { unique: true });
-    //   console.log(
-    //     "Collection 'patient' created with schema validation and unique index on user_id!"
-    //   );
-    // }
+    if (!collectionNames.includes("patient")) {
+      await db.createCollection("patient", {
+        validator: {
+          $jsonSchema: {
+            bsonType: "object",
+            required: ["user_id", "questions"],
+            properties: {
+              user_id: {
+                bsonType: "string",
+                description: "user_id Must be String",
+              },
+              questions: {
+                bsonType: "array",
+                items: {
+                  bsonType: "object",
+                  properties: {
+                    feeling: {
+                      bsonType: "string",
+                      description: "feeling Must be String",
+                    },
+                    challenges: {
+                      bsonType: "array",
+                      items: {
+                        bsonType: "string",
+                        description: "items Must be String",
+                      },
+                    },
+                    areas: {
+                      bsonType: "array",
+                      description: "areas Must be String",
+                      items: {
+                        bsonType: "string",
+                        description: "items Must be String",
+                      },
+                    },
+                    prev_therapy: {
+                      bsonType: "string",
+                      description: "prev_therapy Must be String",
+                    },
+                    self_harm: {
+                      bsonType: "string",
+                      description: "self_harm Must be String",
+                    },
+                    life_changes: {
+                      bsonType: "string",
+                      description: "life_changes Must be String",
+                    },
+                    any_medication: {
+                      bsonType: "string",
+                      description: "any_medication Must be String",
+                    },
+                    illness: {
+                      bsonType: "array",
+                      description: "illness Must be String",
+                      items: {
+                        bsonType: "string",
+                        description: "items Must be String",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      await db
+        .collection("patient")
+        .createIndex({ user_id: 1 }, { unique: true });
+      console.log(
+        "Collection 'patient' created with schema validation and unique index on user_id!"
+      );
+    }
 
     // if (!collectionNames.includes("doctor")) {
     //   await db.createCollection("doctor", {
