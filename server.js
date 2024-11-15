@@ -26,7 +26,6 @@ app.use(express.json());
 app.use(
   cors({
     origin: "http://localhost:3000",
-    methods: ["POST", "GET", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
 );
@@ -35,7 +34,6 @@ require("./Routes/routes")(app);
 app.listen(4000, () => {
   console.log(`Server listening on port ${4000}.`);
 });
-
 async function run() {
   try {
     await client.connect();
@@ -44,133 +42,138 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
 
-    const db = client.db("global");
+    // if (!collectionNames.includes("user")) {
+    //   await db.createCollection("user", {
+    //     validator: {
+    //       $jsonSchema: {
+    //         bsonType: "object",
+    //         required: [
+    //           "name",
+    //           "email",
+    //           "password",
+    //           "age",
+    //           "gender",
+    //           "phone",
+    //           "createdAt",
+    //         ],
+    //         properties: {
+    //           _id: {
+    //             bsonType: "objectId",
+    //             description: "_id Must be objectId",
+    //           },
+    //           avatar: {
+    //             bsonType: "binData",
+    //             description: " avatar Must be File",
+    //           },
+    //           name: { bsonType: "string", description: "Name Must be String" },
+    //           email: {
+    //             bsonType: "string",
+    //             description: "Email Must Be unique",
+    //           },
+    //           password: {
+    //             bsonType: "string",
+    //             description: "Password Must be String",
+    //           },
+    //           role: { bsonType: "string", description: "Role Must be String" },
+    //           age: { bsonType: "int", description: "Age Must be Number" },
+    //           gender: {
+    //             bsonType: "string",
+    //             description: "Gender Must be String",
+    //           },
+    //           phone: {
+    //             bsonType: ["string", "int"],
+    //             description: "Phone Must be String or Number",
+    //           },
+    //           createdAt: {
+    //             bsonType: "date",
+    //             description: "createdAt Must be Date",
+    //           },
+    //         },
+    //       },
+    //     },
+    //   });
+    //   await db.collection("user").createIndex({ email: 1 }, { unique: true });
+    //   console.log(
+    //     "Collection 'users' created with schema validation and unique index on email!"
+    //   );
+    // }
 
-    const collections = await db.listCollections().toArray();
-    const collectionNames = collections.map((col) => col.name);
-
-    if (!collectionNames.includes("user")) {
-      await db.createCollection("user", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: [
-              "name",
-              "email",
-              "password",
-              "age",
-              "gender",
-              "phone",
-              "createdAt",
-            ],
-            properties: {
-              avatar: { bsonType: "binData", description: "Must be File" },
-              name: { bsonType: "string", description: "Name Must be String" },
-              email: {
-                bsonType: "string",
-                description: "Email Must Be unique",
-              },
-              password: {
-                bsonType: "string",
-                description: "Password Must be String",
-              },
-              role: { bsonType: "string", description: "Role Must be String" },
-              age: { bsonType: "int", description: "Age Must be Number" },
-              gender: {
-                bsonType: "string",
-                description: "Gender Must be String",
-              },
-              phone: {
-                bsonType: ["string", "int"],
-                description: "Phone Must be String or Number",
-              },
-              createdAt: {
-                bsonType: "date",
-                description: "createdAt Must be Date",
-              },
-            },
-          },
-        },
-      });
-      await db.collection("user").createIndex({ email: 1 }, { unique: true });
-      console.log(
-        "Collection 'users' created with schema validation and unique index on email!"
-      );
-    }
-
-    if (!collectionNames.includes("patient")) {
-      await db.createCollection("patient", {
-        validator: {
-          $jsonSchema: {
-            bsonType: "object",
-            required: ["user_id", "questions"],
-            properties: {
-              user_id: {
-                bsonType: "string",
-                description: "user_id Must be String",
-              },
-              questions: {
-                bsonType: "array",
-                items: {
-                  bsonType: "object",
-                  properties: {
-                    feeling: {
-                      bsonType: "string",
-                      description: "feeling Must be String",
-                    },
-                    challenges: {
-                      bsonType: "array",
-                      items: {
-                        bsonType: "string",
-                        description: "items Must be String",
-                      },
-                    },
-                    areas: {
-                      bsonType: "array",
-                      description: "areas Must be String",
-                      items: {
-                        bsonType: "string",
-                        description: "items Must be String",
-                      },
-                    },
-                    prev_therapy: {
-                      bsonType: "string",
-                      description: "prev_therapy Must be String",
-                    },
-                    self_harm: {
-                      bsonType: "string",
-                      description: "self_harm Must be String",
-                    },
-                    life_changes: {
-                      bsonType: "string",
-                      description: "life_changes Must be String",
-                    },
-                    any_medication: {
-                      bsonType: "string",
-                      description: "any_medication Must be String",
-                    },
-                    illness: {
-                      bsonType: "array",
-                      description: "illness Must be String",
-                      items: {
-                        bsonType: "string",
-                        description: "items Must be String",
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-      await db
-        .collection("patient")
-        .createIndex({ user_id: 1 }, { unique: true });
-      console.log(
-        "Collection 'patient' created with schema validation and unique index on user_id!"
-      );
-    }
+    // if (!collectionNames.includes("patient")) {
+    //   await db.createCollection("patient", {
+    //     validator: {
+    //       $jsonSchema: {
+    //         bsonType: "object",
+    //         required: ["user_id", "questions"],
+    //         properties: {
+    //           user_id: {
+    //             bsonType: "objectId",
+    //             description: "user_id Must be objectId",
+    //           },
+    //           questions: {
+    //             items: {
+    //               bsonType: "object",
+    //               properties: {
+    //                 feeling: {
+    //                   bsonType: "string",
+    //                   description: "feeling Must be String",
+    //                 },
+    //                 challenges: {
+    //                   bsonType: "array",
+    //                   items: {
+    //                     bsonType: "string",
+    //                     description: "items Must be String",
+    //                   },
+    //                 },
+    //                 areas: {
+    //                   bsonType: "array",
+    //                   description: "areas Must be String",
+    //                   items: {
+    //                     bsonType: "string",
+    //                     description: "items Must be String",
+    //                   },
+    //                 },
+    //                 prev_therapy: {
+    //                   bsonType: "string",
+    //                   description: "prev_therapy Must be String",
+    //                 },
+    //                 self_harm: {
+    //                   bsonType: "string",
+    //                   description: "self_harm Must be String",
+    //                 },
+    //                 life_changes: {
+    //                   bsonType: "string",
+    //                   description: "life_changes Must be String",
+    //                 },
+    //                 any_medication: {
+    //                   bsonType: "array",
+    //                   description: "illness Must be String",
+    //                   items: {
+    //                     bsonType: "string",
+    //                     description: "items Must be String",
+    //                   },
+    //                 },
+    //                 illness: {
+    //                   bsonType: "array",
+    //                   description: "illness Must be String",
+    //                   items: {
+    //                     bsonType: "string",
+    //                     description: "items Must be String",
+    //                   },
+    //                 },
+    //               },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     },
+    //   });
+    //   await db
+    //     .collection("patient")
+    //     .createIndex({ user_id: 1 }, { unique: true });
+    //   console.log(
+    //     "Collection 'patient' created with schema validation and unique index on user_id!"
+    //   );
+    // }
 
     // if (!collectionNames.includes("doctor")) {
     //   await db.createCollection("doctor", {
