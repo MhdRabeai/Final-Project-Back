@@ -2,6 +2,7 @@ const path = require("path");
 const dotenv = require("dotenv");
 const express = require("express");
 const router = express.Router();
+
 const {
   userRegister,
   register,
@@ -39,7 +40,7 @@ const upload = multer({ storage: storage });
 dotenv.config();
 
 module.exports = (app) => {
-  app.get("/", isLogined, getData);
+  app.get("/checkToken", isLogined, getData);
   // *******************************************
   // Regetration & Auth
   app.post("/userRegister", upload.single("myfile"), userRegister);

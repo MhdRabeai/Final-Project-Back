@@ -1,6 +1,7 @@
 let bcryptjs = require("bcryptjs");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
+var jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { generateAccessToken } = require("../config/accessToken");
 const uri =
@@ -342,6 +343,12 @@ exports.login = async (req, res) => {
       console.log("Invalid Password");
       return res.status(404).json({ message: "Invalid Password" });
     }
+    if (!user["isActive"]) {
+      console.log("isActive");
+      return res
+        .status(404)
+        .json({ message: "You should verify your Account!!" });
+    }
     console.log("id in login");
     const accessToken = generateAccessToken({
       id: user["_id"],
@@ -361,18 +368,30 @@ exports.login = async (req, res) => {
   }
 };
 exports.logout = (req, res) => {
-  res.cookie("access_token", "", { maxAge: 0 });
-  res.end();
+  // res.cookie("access_token", "", { maxAge: 0 });
+  // res.end();
+  res.clearCookie("token", { path: "/" });
+  res.json({ success: true });
 };
 exports.getData = async (req, res) => {
-  const userId = new ObjectId(req.user["id"]);
   try {
-    const user = await userCollection.findOne({ _id: userId });
-    if (user) {
-      return res.status(200).json({ user: user });
+    await connectToDatabase();
+
+    if (!req.user || !req.user["id"]) {
+      return res.status(400).json({ error: "User ID is missing" });
     }
-    return res.status(200).json({ user: "none" });
+
+    const id = new ObjectId(req.user["id"]);
+    const user = await userCollection.findOne({ _id: id });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    console.log(user);
+    return res.status(200).json({ user });
   } catch (err) {
-    console.log("err", err.message);
+    console.error("Error fetching user:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
