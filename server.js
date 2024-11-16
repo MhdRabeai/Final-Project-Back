@@ -1,4 +1,6 @@
 const express = require("express");
+const PORT = process.env.PORT || 4000;
+const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -14,19 +16,22 @@ const client = new MongoClient(uri, {
 });
 
 app.use(express.static("public"));
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(express.json());
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
+// app.use("/user", myRoutes);
+
+const corsOptions = {
+  origin: "http://localhost:3000",
+  credentials: true,
+};
+app.use(cors(corsOptions));
 require("./Routes/routes")(app);
 
-app.listen(4000, () => {
-  console.log(`Server listening on port ${4000}.`);
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}.`);
 });
 async function run() {
   try {

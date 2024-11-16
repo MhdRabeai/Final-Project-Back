@@ -1,7 +1,7 @@
-const fs = require("fs/promises");
 const path = require("path");
 const dotenv = require("dotenv");
 const express = require("express");
+const router = express.Router();
 const {
   userRegister,
   register,
@@ -11,7 +11,7 @@ const {
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { isUser } = require("./middleware/auth");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+// const { MongoClient, ServerApiVersion } = require("mongodb");
 // const uri =
 //   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
 // const client = new MongoClient(uri, {
@@ -39,8 +39,10 @@ dotenv.config();
 
 module.exports = (app) => {
   app.get("/", isLogined, async (req, res) => {
-    const user = JSON.parse(data).find((ele) => ele.name === req.user["name"]);
-    res.send(JSON.stringify(user));
+    console.log("access_token", req.user);
+    return res.send(200);
+    // const user = JSON.parse(data).find((ele) => ele.name === req.user["name"]);
+    // res.send(JSON.stringify(user));
   });
   // *******************************************
   // Regetration & Auth

@@ -342,18 +342,20 @@ exports.login = async (req, res) => {
       console.log("Invalid Password");
       return res.status(404).json({ message: "Invalid Password" });
     }
-
+    console.log("id in login");
     const accessToken = generateAccessToken({
-      id: user["id"],
+      id: user["_id"],
       role: user["role"],
     });
 
     res.cookie("access_token", accessToken, {
       httpOnly: true,
       secure: true,
+      sameSite: "None",
+      path: "/",
     });
-    console.log("done", passwordMatched);
-    return res.status(200).json({ message: "Login successful" });
+    console.log("done .. accessToken =>", accessToken);
+    return res.status(200).json({ message: "Logout successful!!", user: user });
   } catch (err) {
     return res.status(400).json({ message: "Server Error" });
   }
@@ -362,3 +364,15 @@ exports.logout = (req, res) => {
   res.cookie("access_token", "", { maxAge: 0 });
   res.end();
 };
+// exports.getData = async (req, res) => {
+//   const userId = new ObjectId(req.user["id"]);
+//   try {
+//     const user = await userCollection.findOne({ _id: userId });
+//     if (user) {
+//       return res.status(200).json({ user: user });
+//     }
+//     return res.status(200).json({ user: "none" });
+//   } catch (err) {
+//     console.log("err", err.message);
+//   }
+// };
