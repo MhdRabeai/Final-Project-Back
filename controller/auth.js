@@ -14,7 +14,6 @@ const client = new MongoClient(uri, {
 });
 const db = client.db("global");
 
-const TOKEN = process.env.MYTOKEN;
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -225,7 +224,7 @@ exports.verifyEmail = async (req, res) => {
     return res.status(200).json({ message: "Email verified successfully!" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Email verify Faild!!" });
   }
 };
 exports.register = async (req, res) => {
@@ -330,37 +329,36 @@ exports.register = async (req, res) => {
   }
 };
 
-// exports.login = async (req, res) => {
-//   const { name, password } = req.body;
-//   try {
-//     const data = await fs.readFile(
-//       path.join(__dirname, "../DB/myjsonfile.json"),
-//       "utf8"
-//     );
-//     const user = await JSON.parse(data).find((ele) => ele.name === name);
-//     if (!user) {
-//       res.status(404).send("Invalid Username ");
-//     }
-//     const passwordMatched = await bcryptjs.compare(password, user.password);
-//     if (!passwordMatched) {
-//       res.status(404).send("Invalid Password");
-//     }
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await userCollection.findOne({ email });
+    if (!user) {
+      console.log("Invalid email");
+      return res.status(404).json({ message: "Invalid email " });
+    }
+    const passwordMatched = await bcryptjs.compare(password, user.password);
+    if (!passwordMatched) {
+      console.log("Invalid Password");
+      return res.status(404).json({ message: "Invalid Password" });
+    }
 
-//     const accessToken = generateAccessToken({
-//       name: user.name,
-//     });
+    const accessToken = generateAccessToken({
+      id: user["id"],
+      role: user["role"],
+    });
 
-//     res.cookie("access_token", accessToken, {
-//       httpOnly: true,
-//       secure: true,
-//     });
-
-//     res.status(200).send("Login successful");
-//   } catch (err) {
-//     return res.sendStatus(400);
-//   }
-// };
-// exports.logout = (req, res) => {
-//   res.cookie("access_token", "", { maxAge: 0 });
-//   res.end();
-// };
+    res.cookie("access_token", accessToken, {
+      httpOnly: true,
+      secure: true,
+    });
+    console.log("done", passwordMatched);
+    return res.status(200).json({ message: "Login successful" });
+  } catch (err) {
+    return res.status(400).json({ message: "Server Error" });
+  }
+};
+exports.logout = (req, res) => {
+  res.cookie("access_token", "", { maxAge: 0 });
+  res.end();
+};

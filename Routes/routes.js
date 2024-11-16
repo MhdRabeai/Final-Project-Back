@@ -2,22 +2,26 @@ const fs = require("fs/promises");
 const path = require("path");
 const dotenv = require("dotenv");
 const express = require("express");
-const router = express.Router();
+const {
+  userRegister,
+  register,
+  verifyEmail,
+  login,
+  logout,
+} = require("../controller/auth");
+const { isLogined } = require("../middleware/auth");
 // const { isUser } = require("./middleware/auth");
 const { MongoClient, ServerApiVersion } = require("mongodb");
-const uri =
-  "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
+// const uri =
+//   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
+// const client = new MongoClient(uri, {
+//   serverApi: {
+//     version: ServerApiVersion.v1,
+//     strict: true,
+//     deprecationErrors: true,
+//   },
+// });
 const multer = require("multer");
-
-const { userRegister, register, verifyEmail } = require("../controller/auth");
-
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "public/");
@@ -34,18 +38,15 @@ const upload = multer({ storage: storage });
 dotenv.config();
 
 module.exports = (app) => {
-  // router.get("/", isUser, async (req, res) => {
-  //   const data = await fs.readFile(
-  //     path.join(__dirname, "./DB/myjsonfile.json"),
-  //     "utf8"
-  //   );
-  //   const user = JSON.parse(data).find((ele) => ele.name === req.user["name"]);
-  //   res.send(JSON.stringify(user));
-  // });
-
-  // app.post("/login", login);
+  app.get("/", isLogined, async (req, res) => {
+    const user = JSON.parse(data).find((ele) => ele.name === req.user["name"]);
+    res.send(JSON.stringify(user));
+  });
+  // *******************************************
+  // Regetration & Auth
   app.post("/userRegister", upload.single("myfile"), userRegister);
   app.post("/register", upload.single("myfile"), register);
   app.post("/verifyEmail", verifyEmail);
-  // router.get("/logout", logout);
+  app.post("/login", login);
+  app.get("/logout", logout);
 };

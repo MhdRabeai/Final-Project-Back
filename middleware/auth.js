@@ -10,3 +10,13 @@ exports.isUser = (req, res, next) => {
     next();
   });
 };
+exports.isLogined = (req, res, next) => {
+  const token = req.cookies["access_token"];
+  jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
+    if (err) {
+      return res.sendStatus(403);
+    }
+    req.user = user;
+    next();
+  });
+};
