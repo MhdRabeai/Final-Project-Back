@@ -362,16 +362,15 @@ exports.login = async (req, res) => {
       path: "/",
     });
     console.log("done .. accessToken =>", accessToken);
-    return res.status(200).json({ message: "Logout successful!!", user: user });
+    return res.status(200).json({ message: "Login successful!!", user: user });
   } catch (err) {
     return res.status(400).json({ message: "Server Error" });
   }
 };
 exports.logout = (req, res) => {
-  // res.cookie("access_token", "", { maxAge: 0 });
-  // res.end();
-  res.clearCookie("token", { path: "/" });
-  res.json({ success: true });
+  console.log("Logout");
+  res.cookie("access_token", "", { maxAge: 0 });
+  res.end();
 };
 exports.getData = async (req, res) => {
   try {
