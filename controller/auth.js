@@ -1,7 +1,6 @@
 let bcryptjs = require("bcryptjs");
 const nodemailer = require("nodemailer");
-const fs = require("fs/promises");
-const path = require("path");
+require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { generateAccessToken } = require("../config/accessToken");
 const uri =
@@ -14,13 +13,18 @@ const client = new MongoClient(uri, {
   },
 });
 const db = client.db("global");
-// require('dotenv').config();
+
+const TOKEN = process.env.MYTOKEN;
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
+    // user: "mhd.rabea.naser@gmail.com",
+    // pass: "seyy zkav nahk qgdi",
     user: process.env.EMAIL,
     pass: process.env.PASSWORD,
   },
+  debug: true,
+  logger: true,
 });
 // ******************
 // Rols
@@ -61,6 +65,7 @@ exports.userRegister = async (req, res) => {
     name,
     email,
     password,
+    any_medication,
     phone,
     age,
     gender,
@@ -72,6 +77,7 @@ exports.userRegister = async (req, res) => {
     prev_therapy &&
     self_harm &&
     illness &&
+    any_medication &&
     life_changes &&
     name &&
     email &&
@@ -146,15 +152,33 @@ exports.userRegister = async (req, res) => {
         patientData
       );
       console.log("Patient data inserted successfully", patientInsertResult);
+      console.log("email", email);
+      console.log("from", process.env.EMAIL);
+      console.log("name", name);
+      console.log("confirmationCode", confirmationCode);
       const mailOptions = {
-        from: process.env.EMAIL,
+        from: "mhd.rabea.naser@gmail.com",
         to: email,
         subject: "Confirmation email",
-
         text: `Hello ${name},\n\nYour registration code is: ${confirmationCode}\n\nThank you for registering with us!`,
       };
 
-      await transporter.sendMail(mailOptions);
+      // transporter
+      //   .sendMail({
+      //     from: sender,
+      //     to: recipients,
+      //     subject: "Confirmation email",
+      //     text: `Hello ${name},\n\nYour registration code is: ${confirmationCode}\n\nThank you for registering with us!`,
+      //     category: "Integration Test",
+      //   })
+      //   .then(console.log, console.error);
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.error("Error:", err);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
       console.log("Confirmation email sent!");
       console.log("User registered successfully");
 
@@ -162,8 +186,6 @@ exports.userRegister = async (req, res) => {
     } catch (err) {
       console.error("Server error:", err);
       return res.status(500).json({ message: "Server error" });
-    } finally {
-      await client.close();
     }
   } else {
     console.log("Invalid userData");
@@ -172,21 +194,35 @@ exports.userRegister = async (req, res) => {
 };
 exports.verifyEmail = async (req, res) => {
   const { email, confirmationCode } = req.body;
+
+  console.log(confirmationCode.join(""));
   try {
     const user = await userCollection.findOne({ email });
+    console.log("user", user);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    if (user.confirmationCode === confirmationCode) {
-      await userCollection.updateOne(
-        { email },
-        { $set: { isActive: true }, $unset: { confirmationCode: "" } }
-      );
 
-      return res.status(200).json({ message: "Email verified successfully!" });
+    if (typeof user["hashedCode"] !== "string") {
+      console.error("The password to compare must be a string.");
     } else {
-      return res.status(400).json({ message: "Invalid confirmation code" });
+      bcryptjs.compare(
+        confirmationCode.join(""),
+        user["hashedCode"],
+        async (err, isMatch) => {
+          if (err) {
+            return `Error comparing password: ${err}`;
+          } else {
+            await userCollection.updateOne(
+              { email },
+              { $set: { isActive: true }, $unset: { confirmationCode: "" } }
+            );
+          }
+        }
+      );
     }
+    console.log("Done");
+    return res.status(200).json({ message: "Email verified successfully!" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error" });
@@ -293,9 +329,6 @@ exports.register = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-// للتحقق لاحقًا إذا كانت القيمتان متطابقتين
-//  const isMatch = await bcrypt.compare(confirmationCode, hashedCode);
 
 // exports.login = async (req, res) => {
 //   const { name, password } = req.body;
