@@ -8,6 +8,7 @@ const {
   verifyEmail,
   login,
   logout,
+  getData,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { isUser } = require("./middleware/auth");
@@ -38,12 +39,7 @@ const upload = multer({ storage: storage });
 dotenv.config();
 
 module.exports = (app) => {
-  app.get("/", isLogined, async (req, res) => {
-    console.log("access_token", req.user);
-    return res.send(200);
-    // const user = JSON.parse(data).find((ele) => ele.name === req.user["name"]);
-    // res.send(JSON.stringify(user));
-  });
+  app.get("/", isLogined, getData);
   // *******************************************
   // Regetration & Auth
   app.post("/userRegister", upload.single("myfile"), userRegister);

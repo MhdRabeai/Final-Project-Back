@@ -364,15 +364,15 @@ exports.logout = (req, res) => {
   res.cookie("access_token", "", { maxAge: 0 });
   res.end();
 };
-// exports.getData = async (req, res) => {
-//   const userId = new ObjectId(req.user["id"]);
-//   try {
-//     const user = await userCollection.findOne({ _id: userId });
-//     if (user) {
-//       return res.status(200).json({ user: user });
-//     }
-//     return res.status(200).json({ user: "none" });
-//   } catch (err) {
-//     console.log("err", err.message);
-//   }
-// };
+exports.getData = async (req, res) => {
+  const userId = new ObjectId(req.user["id"]);
+  try {
+    const user = await userCollection.findOne({ _id: userId });
+    if (user) {
+      return res.status(200).json({ user: user });
+    }
+    return res.status(200).json({ user: "none" });
+  } catch (err) {
+    console.log("err", err.message);
+  }
+};
