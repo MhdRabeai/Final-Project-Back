@@ -48,4 +48,5 @@ module.exports = (app) => {
   app.post("/verifyEmail", verifyEmail);
   app.post("/login", login);
   app.get("/logout", logout);
+  app.get("/doctorProfile?", doctorProfile);
 };

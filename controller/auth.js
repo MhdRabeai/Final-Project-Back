@@ -394,3 +394,22 @@ exports.getData = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+exports.doctorProfile = async (req, res) => {
+  const { doctorId } = req.query;
+  // try {
+  //   await connectToDatabase();
+  //   if (!req.user || !req.user["id"]) {
+  //     return res.status(400).json({ error: "User ID is missing" });
+  //   }
+  //   const id = new ObjectId(req.user["id"]);
+  //   const user = await userCollection.findOne({ _id: id });
+  //   if (!user) {
+  //     return res.status(404).json({ error: "User not found" });
+  //   }
+  //   console.log(user);
+  //   return res.status(200).json({ user });
+  // } catch (err) {
+  //   console.error("Error fetching user:", err);
+  //   return res.status(500).json({ error: "Internal server error" });
+  // }
+};
