@@ -2,6 +2,8 @@ let bcryptjs = require("bcryptjs");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 var jwt = require("jsonwebtoken");
+const axios = require("axios");
+const rateLimit = require("axios-rate-limit");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { generateAccessToken } = require("../config/accessToken");
 const uri =
@@ -14,7 +16,7 @@ const client = new MongoClient(uri, {
   },
 });
 const db = client.db("global");
-
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -26,6 +28,47 @@ const transporter = nodemailer.createTransport({
   debug: true,
   logger: true,
 });
+
+const welcomeMessage = "Hello! I'm your assistant. How can I help you today?";
+
+const predefinedAnswers = {
+  "What is depression?":
+    "Depression is a mood disorder that causes persistent feelings of sadness, hopelessness, and loss of interest in daily activities. It can affect how you feel, think, and behave.",
+  "What are the symptoms of anxiety?":
+    "Anxiety symptoms can include constant worry, restlessness, fatigue, difficulty concentrating, and physical symptoms like a rapid heartbeat or sweating.",
+  "How can I manage stress?":
+    "Stress management techniques include practicing mindfulness, exercising regularly, taking breaks, and talking to a counselor or therapist.",
+  "What is PTSD?":
+    "Post-Traumatic Stress Disorder (PTSD) is a mental health condition triggered by a terrifying event, causing symptoms like flashbacks, nightmares, and emotional numbness.",
+
+  "How can I register on the site?":
+    "To register, click on the 'Sign Up' button, fill in your details, and submit the form. You will receive a confirmation email.",
+
+  "How can I book an appointment?":
+    "You can book an appointment by clicking on the 'Book Appointment' button, selecting a date and time, and confirming your booking.",
+  "What happens after I book an appointment?":
+    "Once your appointment is booked, you will receive a confirmation email with your appointment details.",
+};
+
+const predefinedAnswersAr = {
+  "ما هو الاكتئاب؟":
+    "الاكتئاب هو اضطراب مزاجي يسبب مشاعر مستمرة من الحزن، واليأس، وفقدان الاهتمام بالأنشطة اليومية. يمكن أن يؤثر على مشاعرك، وأفكارك، وتصرفاتك.",
+  "ما هي أعراض القلق؟":
+    "تتضمن أعراض القلق القلق المستمر، والقلق الزائد، والإرهاق، وصعوبة التركيز، والأعراض الجسدية مثل تسارع ضربات القلب أو التعرق.",
+  "كيف يمكنني إدارة التوتر؟":
+    "تشمل تقنيات إدارة التوتر ممارسة اليقظة الذهنية، وممارسة الرياضة بانتظام، وأخذ فترات راحة، والتحدث مع مستشار أو معالج.",
+  "ما هو اضطراب ما بعد الصدمة؟":
+    "اضطراب ما بعد الصدمة هو حالة صحية عقلية ناتجة عن حدث مروع، مما يؤدي إلى أعراض مثل العودة إلى الذكريات المزعجة، وكوابيس، والشعور بالخدر العاطفي.",
+
+  "كيف يمكنني التسجيل في الموقع؟":
+    "للتسجيل، اضغط على زر 'التسجيل'، املأ بياناتك، ثم قدم النموذج. ستتلقى رسالة تأكيد على بريدك الإلكتروني.",
+
+  "كيف يمكنني حجز موعد؟":
+    "يمكنك حجز موعد بالنقر على زر 'حجز موعد'، ثم اختيار التاريخ والوقت المناسبين، وأخيرًا تأكيد الحجز.",
+  "ماذا يحدث بعد حجز الموعد؟":
+    "بمجرد حجز الموعد، ستتلقى رسالة تأكيد عبر البريد الإلكتروني تحتوي على تفاصيل الموعد.",
+};
+
 // ******************
 // Rols
 const userCollection = db.collection("user");
@@ -396,20 +439,37 @@ exports.getData = async (req, res) => {
 };
 exports.doctorProfile = async (req, res) => {
   const { doctorId } = req.query;
-  // try {
-  //   await connectToDatabase();
-  //   if (!req.user || !req.user["id"]) {
-  //     return res.status(400).json({ error: "User ID is missing" });
-  //   }
-  //   const id = new ObjectId(req.user["id"]);
-  //   const user = await userCollection.findOne({ _id: id });
-  //   if (!user) {
-  //     return res.status(404).json({ error: "User not found" });
-  //   }
-  //   console.log(user);
-  //   return res.status(200).json({ user });
-  // } catch (err) {
-  //   console.error("Error fetching user:", err);
-  //   return res.status(500).json({ error: "Internal server error" });
-  // }
+
+  try {
+    await connectToDatabase();
+
+    const id = new ObjectId(doctorId);
+
+    const user = await userCollection.findOne({ _id: id });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const doctor = await doctorCollection.findOne({ user_id: user["_id"] });
+    if (!doctor) {
+      return res.status(404).json({ error: "doctor not found" });
+    }
+    return res.status(200).json({ user, doctor });
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };
+exports.createPayment = async (req, res) => {
+  try {
+    const { amount } = req.body; // المبلغ بالدولار * 100
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount * 100, // تحويل إلى سنتات
+      currency: "usd",
+      payment_method_types: ["card"],
+    });
+    res.send({ clientSecret: paymentIntent.client_secret });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+};
+exports.AiPot = async (req, res) => {};

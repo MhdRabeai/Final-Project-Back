@@ -3,8 +3,10 @@ const PORT = process.env.PORT || 4000;
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
+
 const uri =
   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
 const client = new MongoClient(uri, {
@@ -399,6 +401,10 @@ async function run() {
     //           quantity: {
     //             bsonType: ["string", "number"],
     //             description: "medicationQuantity Must be String or number",
+    //           },
+    //           ExpiredDate: {
+    //             bsonType: "data",
+    //             description: "Expired-date Must be String or data",
     //           },
     //         },
     //       },

@@ -1,7 +1,5 @@
 const path = require("path");
 const dotenv = require("dotenv");
-const express = require("express");
-const router = express.Router();
 
 const {
   userRegister,
@@ -10,6 +8,9 @@ const {
   login,
   logout,
   getData,
+  doctorProfile,
+  createPayment,
+  AiPot,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { isUser } = require("./middleware/auth");
@@ -49,4 +50,6 @@ module.exports = (app) => {
   app.post("/login", login);
   app.get("/logout", logout);
   app.get("/doctorProfile?", doctorProfile);
+  app.post("/createPayment", createPayment);
+  app.post("/aiPot", AiPot);
 };
