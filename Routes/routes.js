@@ -51,5 +51,5 @@ module.exports = (app) => {
   app.get("/logout", logout);
   app.get("/doctorProfile?", doctorProfile);
   app.post("/createPayment", createPayment);
-  app.post("/aiPot", AiPot);
+  // app.post("/aiPot", AiPot);
 };
