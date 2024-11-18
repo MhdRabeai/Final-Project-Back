@@ -1,14 +1,33 @@
-const express = require("express");
-const router = express.Router();
-const fs = require("fs/promises");
 const path = require("path");
 const dotenv = require("dotenv");
-// const { isUser } = require("./middleware/auth");
 
+const {
+  userRegister,
+  register,
+  verifyEmail,
+  login,
+  logout,
+  getData,
+  doctorProfile,
+  createPayment,
+  AiPot,
+} = require("../controller/auth");
+const { isLogined } = require("../middleware/auth");
+// const { isUser } = require("./middleware/auth");
+// const { MongoClient, ServerApiVersion } = require("mongodb");
+// const uri =
+//   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
+// const client = new MongoClient(uri, {
+//   serverApi: {
+//     version: ServerApiVersion.v1,
+//     strict: true,
+//     deprecationErrors: true,
+//   },
+// });
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, "public/");
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -21,38 +40,16 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 dotenv.config();
 
-module.exports = function (app) {
-  app.get("/", isUser, async (req, res) => {
-    const data = await fs.readFile(
-      path.join(__dirname, "./DB/myjsonfile.json"),
-      "utf8"
-    );
-    const user = JSON.parse(data).find((ele) => ele.name === req.user["name"]);
-    res.send(JSON.stringify(user));
-  });
-  app.get("/download/:filename", (req, res) => {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, "uploads", filename);
-
-    res.download(filePath, (err) => {
-      if (err) {
-        res.setHeader("error", "File not found");
-        return res.status(404).send("File not found");
-      }
-    });
-  });
-  app.post("/login", login);
+module.exports = (app) => {
+  app.get("/checkToken", isLogined, getData);
+  // *******************************************
+  // Regetration & Auth
+  app.post("/userRegister", upload.single("myfile"), userRegister);
   app.post("/register", upload.single("myfile"), register);
+  app.post("/verifyEmail", verifyEmail);
+  app.post("/login", login);
   app.get("/logout", logout);
-
-  // **********************
-  // app.get("/register", (req, res) => {
-  //   res.sendFile(path.join(__dirname, "/public/signup.html"));
-  // });
-  // app.get("/login", (req, res) => {
-  //   res.sendFile(path.join(__dirname, "/public/sginin.html"));
-  // });
-  app.get("/counter", counter);
-  app.post("/counter/inc", incCounter);
-  app.post("/counter/dis", disCounter);
+  app.get("/doctorProfile?", doctorProfile);
+  app.post("/createPayment", createPayment);
+  app.post("/aiPot", AiPot);
 };
