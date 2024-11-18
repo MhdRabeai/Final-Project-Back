@@ -1,5 +1,6 @@
 const express = require("express");
 const PORT = process.env.PORT || 4000;
+const http = require("http");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -17,7 +18,13 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
-
+const server = http.createServer(app);
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "*",
+    method: ["GET", "POST"],
+  },
+});
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -25,7 +32,22 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 // app.use("/user", myRoutes);
+io.on("connection", (socket) => {
+  socket.emit("me", socket.id);
+  console.log(socket.id);
 
+  socket.on("disconnect", (socket) => {
+    console.log(socket);
+  });
+
+  socket.on("calluser", ({ userToCall, signalData, from, name }) => {
+    io.to(userToCall).emit("calluser", { signal: signalData, from, name });
+  });
+
+  socket.on("answercall", (data) => {
+    io.to(data.to).emit("callaccepted", data.signal);
+  });
+});
 const corsOptions = {
   origin: "http://localhost:3000",
   credentials: true,
