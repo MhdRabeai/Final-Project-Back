@@ -9,6 +9,7 @@ const app = express();
 
 const uri =
   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
+
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,

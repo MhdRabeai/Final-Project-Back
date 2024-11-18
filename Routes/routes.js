@@ -40,6 +40,9 @@ const upload = multer({ storage: storage });
 dotenv.config();
 
 module.exports = (app) => {
+  app.get("/", (req, res) => {
+    res.status(200).json({ Message: "Hello" });
+  });
   app.get("/checkToken", isLogined, getData);
   // *******************************************
   // Regetration & Auth

@@ -28,6 +28,7 @@ const transporter = nodemailer.createTransport({
 });
 const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+
 const welcomeMessage = "Hello! I'm your assistant. How can I help you today?";
 
 const predefinedAnswers = {
@@ -432,7 +433,7 @@ exports.getData = async (req, res) => {
     return res.status(200).json({ user });
   } catch (err) {
     console.error("Error fetching user:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(200).json({ user: "" });
   }
 };
 exports.doctorProfile = async (req, res) => {
@@ -458,16 +459,18 @@ exports.doctorProfile = async (req, res) => {
   }
 };
 exports.createPayment = async (req, res) => {
+  const { amount } = req.body;
   try {
-    const { amount } = req.body;
+    console.log("Payment");
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 1000, // 10 دولارات
+      amount: Math.floor(amount * 100),
       currency: "usd",
       payment_method_types: ["card"],
     });
-
+    console.log("End Payment");
     res.send({ clientSecret: await paymentIntent.client_secret });
   } catch (error) {
+    console.log("error Payment");
     res.status(500).send({ error: error.message });
   }
 };
