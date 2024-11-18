@@ -1,6 +1,11 @@
 const path = require("path");
 const dotenv = require("dotenv");
-
+const io = require("socket.io")(server, {
+  cors: {
+    origin: "*",
+    method: ["GET", "POST"],
+  },
+});
 const {
   userRegister,
   register,
@@ -52,6 +57,22 @@ module.exports = (app) => {
   app.post("/login", login);
   app.get("/logout", logout);
   app.get("/doctorProfile?", doctorProfile);
-  app.post("/createPayment", createPayment);
+  app.post("/process-payment", createPayment);
   // app.post("/aiPot", AiPot);
 };
+io.on("connection", (socket) => {
+  socket.emit("me", socket.id);
+  console.log(socket.id);
+
+  socket.on("disconnect", (socket) => {
+    console.log(socket);
+  });
+
+  socket.on("calluser", ({ userToCall, signalData, from, name }) => {
+    io.to(userToCall).emit("calluser", { signal: signalData, from, name });
+  });
+
+  socket.on("answercall", (data) => {
+    io.to(data.to).emit("callaccepted", data.signal);
+  });
+});

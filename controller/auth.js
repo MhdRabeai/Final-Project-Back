@@ -68,6 +68,7 @@ const predefinedAnswersAr = {
     "بمجرد حجز الموعد، ستتلقى رسالة تأكيد عبر البريد الإلكتروني تحتوي على تفاصيل الموعد.",
 };
 
+let amountHolder = 0;
 // ******************
 // Rols
 const userCollection = db.collection("user");
@@ -460,14 +461,16 @@ exports.doctorProfile = async (req, res) => {
 };
 exports.createPayment = async (req, res) => {
   const { amount } = req.body;
+
   try {
-    console.log("Payment");
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.floor(amount * 100),
       currency: "usd",
       payment_method_types: ["card"],
     });
+    amountHolder = amount;
     console.log("End Payment");
+    console.log(await paymentIntent.client_secret);
     res.send({ clientSecret: await paymentIntent.client_secret });
   } catch (error) {
     console.log("error Payment");
