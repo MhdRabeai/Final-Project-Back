@@ -2,8 +2,6 @@ let bcryptjs = require("bcryptjs");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 var jwt = require("jsonwebtoken");
-const axios = require("axios");
-const rateLimit = require("axios-rate-limit");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const { generateAccessToken } = require("../config/accessToken");
 const uri =
@@ -16,7 +14,7 @@ const client = new MongoClient(uri, {
   },
 });
 const db = client.db("global");
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -28,7 +26,8 @@ const transporter = nodemailer.createTransport({
   debug: true,
   logger: true,
 });
-
+const Stripe = require("stripe");
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const welcomeMessage = "Hello! I'm your assistant. How can I help you today?";
 
 const predefinedAnswers = {
@@ -49,7 +48,6 @@ const predefinedAnswers = {
   "What happens after I book an appointment?":
     "Once your appointment is booked, you will receive a confirmation email with your appointment details.",
 };
-
 const predefinedAnswersAr = {
   "ما هو الاكتئاب؟":
     "الاكتئاب هو اضطراب مزاجي يسبب مشاعر مستمرة من الحزن، واليأس، وفقدان الاهتمام بالأنشطة اليومية. يمكن أن يؤثر على مشاعرك، وأفكارك، وتصرفاتك.",
@@ -461,13 +459,14 @@ exports.doctorProfile = async (req, res) => {
 };
 exports.createPayment = async (req, res) => {
   try {
-    const { amount } = req.body; // المبلغ بالدولار * 100
+    const { amount } = req.body;
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount * 100, // تحويل إلى سنتات
+      amount: 1000, // 10 دولارات
       currency: "usd",
       payment_method_types: ["card"],
     });
-    res.send({ clientSecret: paymentIntent.client_secret });
+
+    res.send({ clientSecret: await paymentIntent.client_secret });
   } catch (error) {
     res.status(500).send({ error: error.message });
   }

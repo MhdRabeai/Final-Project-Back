@@ -10,7 +10,6 @@ const {
   getData,
   doctorProfile,
   createPayment,
-  AiPot,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { isUser } = require("./middleware/auth");
