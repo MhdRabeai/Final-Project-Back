@@ -34,7 +34,7 @@ app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use("/api/users", userRoutes);
-app.use("/api/rooms", roomRoutes);
+// app.use("/api/rooms", roomRoutes);
 const { connectDB } = require("./config/db");
 // app.use("/user", myRoutes);
 io.on("connection", (socket) => {
