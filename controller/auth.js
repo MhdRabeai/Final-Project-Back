@@ -29,7 +29,7 @@ const transporter = nodemailer.createTransport({
 const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const genAI = new GoogleGenerativeAI('AIzaSyA2vAY8hwjSSl3-JNrqMfjT4Xnv5bmwwzs');
+const genAI = new GoogleGenerativeAI("AIzaSyA2vAY8hwjSSl3-JNrqMfjT4Xnv5bmwwzs");
 const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash",
   generationConfig: {
@@ -464,6 +464,25 @@ exports.doctorProfile = async (req, res) => {
       return res.status(404).json({ error: "doctor not found" });
     }
     return res.status(200).json({ user, doctor });
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+exports.doctors = async (req, res) => {
+  try {
+    await connectToDatabase();
+
+    // const data = doctorCollection.find();
+    // console.log(doctorCollection.find());
+    // if (!user) {
+    //   return res.status(404).json({ error: "User not found" });
+    // }
+    // const doctor = await doctorCollection.findOne({ user_id: user["_id"] });
+    // if (!doctor) {
+    //   return res.status(404).json({ error: "doctor not found" });
+    // }
+    // return res.status(200).json({ user, doctor });
   } catch (err) {
     console.error("Error fetching user:", err);
     return res.status(500).json({ error: "Internal server error" });

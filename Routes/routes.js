@@ -13,10 +13,9 @@ const {
   getData,
   doctorProfile,
   createPayment,
-  AiPot,
+  doctors,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
-// const { isUser } = require("./middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
 // const uri =
 //   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
@@ -50,14 +49,14 @@ module.exports = (app) => {
   app.get("/checkToken", isLogined, getData);
   // *******************************************
   // Regetration & Auth
+  app.get("/logout", logout);
+  app.get("/doctors", doctors);
+  app.get("/doctorProfile?", doctorProfile);
   app.post("/userRegister", upload.single("myfile"), userRegister);
   app.post("/register", upload.single("myfile"), register);
   app.post("/verifyEmail", verifyEmail);
   app.post("/login", login);
-  app.get("/logout", logout);
-  app.get("/doctorProfile?", doctorProfile);
   app.post("/process-payment", createPayment);
-  app.post("/aiPot", AiPot);
 
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;
