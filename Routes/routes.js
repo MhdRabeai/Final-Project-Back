@@ -12,7 +12,8 @@ const {
   logout,
   getData,
   doctorProfile,
-  createPayment,
+  // createFakePayment,
+  createFakePayment,
   doctors,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
@@ -56,7 +57,8 @@ module.exports = (app) => {
   app.post("/register", upload.single("myfile"), register);
   app.post("/verifyEmail", verifyEmail);
   app.post("/login", login);
-  app.post("/process-payment", createPayment);
+  // app.post("/process-payment-real", createPayment);
+  app.post("/process-payment", createFakePayment);
 
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;

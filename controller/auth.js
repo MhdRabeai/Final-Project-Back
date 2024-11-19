@@ -39,46 +39,7 @@ const model = genAI.getGenerativeModel({
     temperature: 1.0,
   },
 });
-const welcomeMessage = "Hello! I'm your assistant. How can I help you today?";
 
-const predefinedAnswers = {
-  "What is depression?":
-    "Depression is a mood disorder that causes persistent feelings of sadness, hopelessness, and loss of interest in daily activities. It can affect how you feel, think, and behave.",
-  "What are the symptoms of anxiety?":
-    "Anxiety symptoms can include constant worry, restlessness, fatigue, difficulty concentrating, and physical symptoms like a rapid heartbeat or sweating.",
-  "How can I manage stress?":
-    "Stress management techniques include practicing mindfulness, exercising regularly, taking breaks, and talking to a counselor or therapist.",
-  "What is PTSD?":
-    "Post-Traumatic Stress Disorder (PTSD) is a mental health condition triggered by a terrifying event, causing symptoms like flashbacks, nightmares, and emotional numbness.",
-
-  "How can I register on the site?":
-    "To register, click on the 'Sign Up' button, fill in your details, and submit the form. You will receive a confirmation email.",
-
-  "How can I book an appointment?":
-    "You can book an appointment by clicking on the 'Book Appointment' button, selecting a date and time, and confirming your booking.",
-  "What happens after I book an appointment?":
-    "Once your appointment is booked, you will receive a confirmation email with your appointment details.",
-};
-const predefinedAnswersAr = {
-  "ما هو الاكتئاب؟":
-    "الاكتئاب هو اضطراب مزاجي يسبب مشاعر مستمرة من الحزن، واليأس، وفقدان الاهتمام بالأنشطة اليومية. يمكن أن يؤثر على مشاعرك، وأفكارك، وتصرفاتك.",
-  "ما هي أعراض القلق؟":
-    "تتضمن أعراض القلق القلق المستمر، والقلق الزائد، والإرهاق، وصعوبة التركيز، والأعراض الجسدية مثل تسارع ضربات القلب أو التعرق.",
-  "كيف يمكنني إدارة التوتر؟":
-    "تشمل تقنيات إدارة التوتر ممارسة اليقظة الذهنية، وممارسة الرياضة بانتظام، وأخذ فترات راحة، والتحدث مع مستشار أو معالج.",
-  "ما هو اضطراب ما بعد الصدمة؟":
-    "اضطراب ما بعد الصدمة هو حالة صحية عقلية ناتجة عن حدث مروع، مما يؤدي إلى أعراض مثل العودة إلى الذكريات المزعجة، وكوابيس، والشعور بالخدر العاطفي.",
-
-  "كيف يمكنني التسجيل في الموقع؟":
-    "للتسجيل، اضغط على زر 'التسجيل'، املأ بياناتك، ثم قدم النموذج. ستتلقى رسالة تأكيد على بريدك الإلكتروني.",
-
-  "كيف يمكنني حجز موعد؟":
-    "يمكنك حجز موعد بالنقر على زر 'حجز موعد'، ثم اختيار التاريخ والوقت المناسبين، وأخيرًا تأكيد الحجز.",
-  "ماذا يحدث بعد حجز الموعد؟":
-    "بمجرد حجز الموعد، ستتلقى رسالة تأكيد عبر البريد الإلكتروني تحتوي على تفاصيل الموعد.",
-};
-
-let amountHolder = 0;
 // ******************
 // Rols
 const userCollection = db.collection("user");
@@ -473,36 +434,62 @@ exports.doctors = async (req, res) => {
   try {
     await connectToDatabase();
 
-    // const data = doctorCollection.find();
-    // console.log(doctorCollection.find());
-    // if (!user) {
-    //   return res.status(404).json({ error: "User not found" });
-    // }
+    const data = await doctorCollection.find({}).toArray();
+
+    if (!data) {
+      return res.status(404).json({ error: "Doctors not found" });
+    }
     // const doctor = await doctorCollection.findOne({ user_id: user["_id"] });
     // if (!doctor) {
     //   return res.status(404).json({ error: "doctor not found" });
     // }
-    // return res.status(200).json({ user, doctor });
+    return res.status(200).json({ doctors: data });
   } catch (err) {
     console.error("Error fetching user:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-exports.createPayment = async (req, res) => {
-  const { amount } = req.body;
+// exports.createPayment = async (req, res) => {
+//   const { amount } = req.body;
 
-  try {
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.floor(amount * 100),
-      currency: "usd",
-      payment_method_types: ["card"],
-    });
-    amountHolder = amount;
-    console.log("End Payment");
-    console.log(await paymentIntent.client_secret);
-    res.send({ clientSecret: await paymentIntent.client_secret });
-  } catch (error) {
-    console.log("error Payment");
-    res.status(500).send({ error: error.message });
-  }
+//   try {
+//     const paymentIntent = await stripe.paymentIntents.create({
+//       amount: Math.floor(amount * 100),
+//       currency: "usd",
+//       payment_method_types: ["card"],
+//     });
+//     amountHolder = amount;
+//     console.log("End Payment");
+//     console.log(await paymentIntent.client_secret);
+//     res.send({ clientSecret: await paymentIntent.client_secret });
+//   } catch (error) {
+//     console.log("error Payment");
+//     res.status(500).send({ error: error.message });
+//   }
+// };
+exports.createFakePayment = (req, res) => {
+  const { from, to, amount } = req.body;
+  console.log(from);
+  console.log(to);
+  console.log(amount);
+  // res.status(200).json({ message: "done" });
+};
+exports.createAppointment = (req, res) => {
+  // console.log(from);
+  // console.log(to);
+  // console.log(amount);
+  // try {
+  //   const paymentIntent = await stripe.paymentIntents.create({
+  //     amount: Math.floor(amount * 100),
+  //     currency: "usd",
+  //     payment_method_types: ["card"],
+  //   });
+  //   amountHolder = amount;
+  //   console.log("End Payment");
+  //   console.log(await paymentIntent.client_secret);
+  //   res.send({ clientSecret: await paymentIntent.client_secret });
+  // } catch (error) {
+  //   console.log("error Payment");
+  //   res.status(500).send({ error: error.message });
+  // }
 };
