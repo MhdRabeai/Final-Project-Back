@@ -28,7 +28,17 @@ const transporter = nodemailer.createTransport({
 });
 const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI('AIzaSyA2vAY8hwjSSl3-JNrqMfjT4Xnv5bmwwzs');
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  generationConfig: {
+    candidateCount: 1,
+    stopSequences: ["x"],
+    maxOutputTokens: 20,
+    temperature: 1.0,
+  },
+});
 const welcomeMessage = "Hello! I'm your assistant. How can I help you today?";
 
 const predefinedAnswers = {
@@ -477,4 +487,3 @@ exports.createPayment = async (req, res) => {
     res.status(500).send({ error: error.message });
   }
 };
-exports.AiPot = async (req, res) => {};
