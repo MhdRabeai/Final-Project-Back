@@ -13,6 +13,7 @@ const {
   getData,
   doctorProfile,
   createPayment,
+  AiPot,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { isUser } = require("./middleware/auth");
@@ -56,7 +57,7 @@ module.exports = (app) => {
   app.get("/logout", logout);
   app.get("/doctorProfile?", doctorProfile);
   app.post("/process-payment", createPayment);
-  // app.post("/aiPot", AiPot);
+  app.post("/aiPot", AiPot);
 
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;
