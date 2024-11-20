@@ -5,36 +5,21 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
 
-// const uri =
-//   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
-
-// const client = new MongoClient(uri, {
-//   serverApi: {
-//     version: ServerApiVersion.v1,
-//     strict: true,
-//     deprecationErrors: true,
-//   },
-// });
 const socketIo = require("socket.io");
 const server = http.createServer(app);
 const io = socketIo(server, {
   transports: ["websocket"],
 });
-// const userRoutes = require("./Routes/userRoutes");
-// const roomRoutes = require("./Routes/roomRoutes");
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-// app.use("/api/users", userRoutes);
-// app.use("/api/rooms", roomRoutes);
 const { connectDB } = require("./config/db");
-// app.use("/user", myRoutes);
+
 io.on("connection", (socket) => {
   console.log("✅ A user connected:", socket.id);
 
