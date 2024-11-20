@@ -12,6 +12,9 @@ const {
   logout,
   getData,
   doctorProfile,
+<<<<<<< HEAD
+  createPayment,
+=======
   // createFakePayment,
   createFakePayment,
   doctors,
@@ -31,6 +34,7 @@ const {
   addPharmacyInvoice,
   approveInvoice,
   addPrescriptionFromPatient,
+>>>>>>> f89956e3585706218bab6c472941a063c1dc3142
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -73,6 +77,11 @@ module.exports = (app) => {
   app.post("/register", upload.single("myfile"), register);
   app.post("/verifyEmail", verifyEmail);
   app.post("/login", login);
+<<<<<<< HEAD
+  app.get("/logout", logout);
+  app.get("/doctorProfile?", doctorProfile);
+  app.post("/process-payment", createPayment);
+=======
   // app.post("/process-payment-real", createPayment);
   app.post("/process-payment", createFakePayment);
   app.get("/invoices", getInvoices);
@@ -93,6 +102,7 @@ module.exports = (app) => {
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
   // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
   // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
+>>>>>>> f89956e3585706218bab6c472941a063c1dc3142
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;
   //   console.log(req.body);
