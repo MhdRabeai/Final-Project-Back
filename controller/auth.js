@@ -47,6 +47,8 @@ const patientCollection = db.collection("patient");
 const adminCollection = db.collection("admin");
 const doctorCollection = db.collection("doctor");
 const pharmacistCollection = db.collection("pharmacist");
+const drugCollection = db.createCollection("drug")
+;
 // ***********
 const appointmentCollection = db.collection("appointment");
 const sessionCollection = db.collection("session");
@@ -401,6 +403,7 @@ exports.getData = async (req, res) => {
     return res.status(200).json({ user: "" });
   }
 };
+
 exports.doctorProfile = async (req, res) => {
   const { id } = req.query;
 
@@ -435,6 +438,265 @@ exports.doctorProfile = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+//get  patients
+exports.patients = async (req, res) => {
+  try {
+    await connectToDatabase();
+
+    const patients = await userCollection
+      .aggregate([
+        {
+          $match: { role: "patient" },
+        },
+        {
+          $lookup: {
+            from: patientCollection.collectionName,
+            let: { user_id: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ["$user_id", { $toObjectId: "$$user_id" }] },
+                },
+              },
+            ],
+            as: "patientDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$patientDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ])
+      .toArray();
+
+    console.log("Patients with details:", patients);
+
+    return res.status(200).json({ patients });
+  } catch (err) {
+    console.error("Error fetching patients:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+//add  patient with 
+exports.addPatient = async (req, res) => {
+  try {
+    await connectToDatabase();
+
+    const {
+      name,
+      email,
+      password,
+      age,
+      gender,
+      phone,
+      questions,
+      challenges,
+      areas,
+      prev_therapy,
+      self_harm,
+      illness,
+      life_changes,
+      any_medication,
+    } = req.body;
+
+    const newUser = {
+      name,
+      email,
+      password,
+      age,
+      gender,
+      phone,
+      avatar,
+      role: "Patient",
+      isActive: true,
+      createdAt: new Date(),
+    };
+
+    const userResult = await userCollection.insertOne(newUser);
+
+    const newPatient = {
+      user_id: userResult.insertedId,
+      questions,
+      challenges,
+      areas,
+      prev_therapy,
+      self_harm,
+      illness,
+      life_changes,
+      any_medication,
+    };
+
+    const patientResult = await patientCollection.insertOne(newPatient);
+
+    return res.status(201).json({
+      message: "Patient added successfully",
+      patient: { user_id: userResult.insertedId, ...newPatient },
+    });
+  } catch (err) {
+    console.error("Error adding patient:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+//delete  patient with id 
+exports.deletePatient = async (req, res) => {
+  const { id } = req.query;
+
+  try {
+    await connectToDatabase();
+
+    const patientId = new ObjectId(id);
+
+    const deleteResult = await patientCollection.deleteOne({ _id: patientId });
+
+    if (deleteResult.deletedCount === 0) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    return res.status(200).json({ message: "Patient deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting patient:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.updatePatient = async (req, res) => {
+  const { id } = req.query;
+  const updatedData = req.body;
+
+  try {
+    await connectToDatabase();
+
+    const patientId = new ObjectId(id);
+
+    const updateResult = await patientCollection.updateOne(
+      { _id: patientId },
+      { $set: updatedData }
+    );
+
+    if (updateResult.matchedCount === 0) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    return res.status(200).json({ message: "Patient updated successfully" });
+  } catch (err) {
+    console.error("Error updating patient:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+//get  patient with id 
+exports.patientProfile = async (req, res) => {
+  const { id } = req.query;
+
+  try {
+    await connectToDatabase();
+
+    const patientId = new ObjectId(id);
+    const patientWithUserDetails = await patientCollection
+      .aggregate([
+        {
+          $match: { _id: patientId },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ])
+      .toArray();
+
+    return res.status(200).json({ patient: patientWithUserDetails[0] });
+  } catch (err) {
+    console.error("Error fetching patient:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.getDoctorPatients = async (req, res) => {
+  const { doctorId } = req.query;
+
+  try {
+    await connectToDatabase();
+
+    const doctorObjectId = new ObjectId(doctorId);
+
+    const doctorPatients = await patientCollection
+      .aggregate([
+        {
+          $lookup: {
+            from: "doctor",
+            localField: "doctor_id",
+            foreignField: "_id",
+            as: "doctorDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$doctorDetails",
+            preserveNullAndEmptyArrays: false,
+          },
+        },
+        {
+          $match: {
+            "doctorDetails._id": doctorObjectId,
+          },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            questions: 1,
+            challenges: 1,
+            areas: 1,
+            prev_therapy: 1,
+            self_harm: 1,
+            illness: 1,
+            life_changes: 1,
+            any_medication: 1,
+            userDetails: {
+              name: 1,
+              email: 1,
+              phone: 1,
+              age: 1,
+              gender: 1,
+            },
+          },
+        },
+      ])
+      .toArray();
+
+    return res.status(200).json({ patients: doctorPatients });
+  } catch (err) {
+    console.error("Error fetching doctor patients:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 exports.doctors = async (req, res) => {
   try {
     await connectToDatabase();
@@ -475,6 +737,7 @@ exports.doctors = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
 // exports.createPayment = async (req, res) => {
 //   const { amount } = req.body;
 
