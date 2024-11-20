@@ -19,8 +19,6 @@ const db = client.db("global");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    // user: "mhd.rabea.naser@gmail.com",
-    // pass: "seyy zkav nahk qgdi",
     user: process.env.EMAIL,
     pass: process.env.PASSWORD,
   },
