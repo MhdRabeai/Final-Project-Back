@@ -12,9 +12,17 @@ const {
   logout,
   getData,
   doctorProfile,
+
+  createPayment,
   // createFakePayment,
-  createFakePayment,
   doctors,
+  
+  patients,
+  patientProfile,
+  addPatient,
+  deletePatient,
+  updatePatient,
+  getDoctorPatients,
   createAppointment,
   editAppointment,
   deleteAppointment,
@@ -31,8 +39,12 @@ const {
   addPharmacyInvoice,
   approveInvoice,
   addPrescriptionFromPatient,
-  createSession,
-  joinRoom,
+  getAllDrugs,
+  getDrugById,
+  updateDrugById,
+  addNewDrug,
+  deleteDrugById,
+
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -66,15 +78,28 @@ module.exports = (app) => {
     res.status(200).json({ Message: "Hello" });
   });
   app.get("/checkToken", isLogined, getData);
-  // *******************************************
+
   // Regetration & Auth
   app.get("/logout", logout);
   app.get("/doctors", doctors);
+
+  app.get("/patients", patients);
+  app.get("/patientProfile?", patientProfile);
+  app.post("/addPatient", addPatient);
+  app.delete("/deletePatient", deletePatient);
+  app.put("/updatePatient", updatePatient);
+  app.get("/doctorPatients", getDoctorPatients);
+
   app.get("/doctorProfile?", doctorProfile);
   app.post("/userRegister", upload.single("myfile"), userRegister);
   app.post("/register", upload.single("myfile"), register);
   app.post("/verifyEmail", verifyEmail);
   app.post("/login", login);
+
+  app.get("/logout", logout);
+  app.get("/doctorProfile?", doctorProfile);
+  app.post("/process-payment", createPayment);
+
   // app.post("/process-payment-real", createPayment);
   app.post("/process-payment", createFakePayment);
   app.get("/invoices", getInvoices);
@@ -95,9 +120,61 @@ module.exports = (app) => {
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
   // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
   // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
-  app.post("/api/rooms/create", createSession);
 
-  app.post("/api/rooms/join-room", isLogined, joinRoom);
+  // app.post("/api/rooms/create", async (req, res) => {
+  //   const { name, password } = req.body;
+  //   console.log(req.body);
+  //   // const userId = req.user.id;
+
+  //   try {
+  //     const newRoom = {
+  //       name,
+  //       // ownerId: "10",
+  //       password,
+  //       participants: [],
+  //     };
+  //     const room = await db.collection("rooms").insertOne(newRoom);
+  //     console.log(room);
+  //     res.status(201).json(room.ops[0]); // ops[0] للحصول على الكائن المحفوظ
+  //   } catch (err) {
+  //     res.status(500).json({ error: "Failed to create room" });
+  //   }
+  // });
+
+  // app.post("/api/rooms/join-room/:roomId", authMiddleware, async (req, res) => {
+  //   const { roomId } = req.params;
+  //   const { password } = req.body; // كلمة المرور هنا
+  //   const userId = req.user.id;
+
+  //   try {
+  //     const room = await db
+  //       .collection("rooms")
+  //       .findOne({ _id: new ObjectId(roomId) });
+  //     if (!room) return res.status(404).json({ error: "Room not found" });
+
+  //     // التحقق من كلمة مرور الغرفة
+  //     if (room.password && room.password !== password) {
+  //       return res.status(400).json({ error: "Incorrect password" });
+  //     }
+
+  //     // إضافة المستخدم إلى قائمة المشاركين
+  //     await db.collection("rooms").updateOne(
+  //       { _id: new ObjectId(roomId) },
+  //       {
+  //         $push: {
+  //           participants: {
+  //             userId: new ObjectId(userId),
+  //             joinedAt: new Date(),
+  //           },
+  //         },
+  //       }
+  //     );
+
+  //     res.json({ message: "Successfully joined the room" });
+  //   } catch (err) {
+  //     res.status(500).json({ error: "Failed to join room" });
+  //   }
+  // });
 
   // app.post(
   //   "//api/roomsrequest-access/:roomId",
