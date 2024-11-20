@@ -12,11 +12,9 @@ const {
   logout,
   getData,
   doctorProfile,
-<<<<<<< HEAD
+
   createPayment,
-=======
   // createFakePayment,
-  createFakePayment,
   doctors,
   createAppointment,
   editAppointment,
@@ -34,6 +32,7 @@ const {
   addPharmacyInvoice,
   approveInvoice,
   addPrescriptionFromPatient,
+
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -76,11 +75,11 @@ module.exports = (app) => {
   app.post("/register", upload.single("myfile"), register);
   app.post("/verifyEmail", verifyEmail);
   app.post("/login", login);
-<<<<<<< HEAD
+
   app.get("/logout", logout);
   app.get("/doctorProfile?", doctorProfile);
   app.post("/process-payment", createPayment);
-=======
+
   // app.post("/process-payment-real", createPayment);
   app.post("/process-payment", createFakePayment);
   app.get("/invoices", getInvoices);
@@ -96,34 +95,31 @@ module.exports = (app) => {
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
   app.get("/prescription/:id ", getPrescription);
-  app.get("/drugs",getAllDrugs)
-  app.get("/drugs/:id",getDrugById)
-  app.put("/drugs/:id",updateDrugById)
-  app.delete("drugs/:id",deleteDrugById)
-  app.post("/drugs",addNewDrug)
+
   // صيدلي
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
   // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
   // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
+
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;
   //   console.log(req.body);
   //   // const userId = req.user.id;
 
-    try {
-      const newRoom = {
-        name,
-        // ownerId: "10",
-        password,
-        participants: [],
-      };
-      const room = await db.collection("rooms").insertOne(newRoom);
-      console.log(room);
-      res.status(201).json(room.ops[0]); // ops[0] للحصول على الكائن المحفوظ
-    } catch (err) {
-      res.status(500).json({ error: "Failed to create room" });
-    }
-  });
+  //   try {
+  //     const newRoom = {
+  //       name,
+  //       // ownerId: "10",
+  //       password,
+  //       participants: [],
+  //     };
+  //     const room = await db.collection("rooms").insertOne(newRoom);
+  //     console.log(room);
+  //     res.status(201).json(room.ops[0]); // ops[0] للحصول على الكائن المحفوظ
+  //   } catch (err) {
+  //     res.status(500).json({ error: "Failed to create room" });
+  //   }
+  // });
 
   // app.post("/api/rooms/join-room/:roomId", authMiddleware, async (req, res) => {
   //   const { roomId } = req.params;
