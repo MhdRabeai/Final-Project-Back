@@ -86,9 +86,9 @@ module.exports = (app) => {
   app.get("/patients", patients);
   app.get("/patientProfile?", patientProfile);
   app.post("/addPatient", addPatient);
-  app.delete("/deletePatient", deletePatient)
-  app.put("/updatePatient", updatePatient)
-  app.get("/doctorPatients", getDoctorPatients)
+  app.delete("/deletePatient", deletePatient);
+  app.put("/updatePatient", updatePatient);
+  app.get("/doctorPatients", getDoctorPatients);
 
   app.get("/doctorProfile?", doctorProfile);
   app.post("/userRegister", upload.single("myfile"), userRegister);
@@ -115,13 +115,9 @@ module.exports = (app) => {
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
   app.get("/prescription/:id ", getPrescription);
-  app.get("/drugs",getAllDrugs)
-  app.get("/dugs/:id",getDrugById)
-  app.put("/drugs/:id",updateDrugById)
-  app.post("/drugs",addNewDrug)
-  app.delete("drugs/:id",deleteDrugById)
+
   // صيدلي
-  // app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
+  app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
   // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
   // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
 
