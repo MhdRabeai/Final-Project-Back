@@ -36,14 +36,14 @@ const {
   addPrescription,
   getPrescription,
   getAppointmentsByDoctorId,
+  addNewDrug,
+  getAllDrugs,
+  getDrugById,
+  deleteDrugById,
+  updateDrugById,
   addPharmacyInvoice,
   approveInvoice,
   addPrescriptionFromPatient,
-  getAllDrugs,
-  getDrugById,
-  updateDrugById,
-  addNewDrug,
-  deleteDrugById,
 
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
