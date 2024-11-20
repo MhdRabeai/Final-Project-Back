@@ -97,9 +97,9 @@ module.exports = (app) => {
   app.get("/prescription/:id ", getPrescription);
 
   // صيدلي
-  app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
-  // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
-  // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
+  // app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
+  app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
+  app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
 
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;
