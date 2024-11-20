@@ -36,11 +36,7 @@ const {
   addPrescription,
   getPrescription,
   getAppointmentsByDoctorId,
-  addNewDrug,
-  getAllDrugs,
-  getDrugById,
-  deleteDrugById,
-  updateDrugById,
+
   addPharmacyInvoice,
   approveInvoice,
   addPrescriptionFromPatient,
