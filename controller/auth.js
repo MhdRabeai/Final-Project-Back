@@ -52,6 +52,7 @@ const appointmentCollection = db.collection("appointment");
 const sessionCollection = db.collection("session");
 const invoiceCollection = db.collection("invoice");
 const prescriptionCollection = db.collection("prescription");
+const pharmPrescriptionCollection = db.collection("pharmPrescription");
 const medicationCollection = db.collection("medication");
 const reviewCollection = db.collection("review");
 const blogCollection = db.collection("blog");
@@ -625,6 +626,26 @@ exports.getAppointment = async (req, res) => {
     return res.status(500).send({ error: err.message });
   }
 };
+exports.getAppointmentsByDoctorId = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await connectToDatabase();
+
+    const appointments = await appointmentCollection
+      .find({ to: new ObjectId(id) })
+      .toArray();
+
+    if (appointments.length === 0) {
+      return res.status(404).json({ message: "No appointments" });
+    }
+
+    res.status(200).json(appointments);
+  } catch (err) {
+    console.error("Error fetching appointments:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 exports.createAppointment = async (req, res) => {
   const { from, selectedTime, userCondition } = req.body;
   const { id } = req.params;
@@ -938,3 +959,120 @@ exports.getPrescription = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+exports.addPrescriptionFromPatient = async (req, res) => {
+  const { userId, senderName, senderPhone, senderEmail } = req.body;
+
+  try {
+    await connectToDatabase();
+
+    const patientWithUserDetails = await patientCollection
+      .aggregate([
+        {
+          $match: { user_id: new ObjectId(userId) },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            user_id: 1,
+            questions: 1,
+            "userDetails.name": 1,
+            "userDetails.email": 1,
+            "userDetails.phone": 1,
+            "userDetails.avatar": 1,
+            "userDetails.role": 1,
+          },
+        },
+      ])
+      .toArray();
+
+    if (!patientWithUserDetails) {
+      return res.status(404).json({ error: "Patient not found" });
+    }
+
+    const prescriptionData = {
+      _id: new Date(),
+      patientId: new ObjectId(patientWithUserDetails[0]["_id"]),
+      senderName: patientWithUserDetails[0]["userDetails"]["name"],
+      senderPhone: patientWithUserDetails[0]["userDetails"]["phone"],
+      senderEmail: patientWithUserDetails[0]["userDetails"]["email"],
+      status: "pending",
+      createdAt: new Date(),
+    };
+
+    await pharmPrescriptionCollection.insertOne(prescriptionData);
+    res.status(201).json({
+      message: "Prescription added successfully",
+    });
+  } catch (err) {
+    console.error("Error adding prescription:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+// exports.addPharmacyInvoice = async (req, res) => {
+//   const { prescriptionId, invoiceData } = req.body;
+
+//   try {
+//     await connectToDatabase();
+//     const prescription = await pharmPrescriptionCollection.findOne({
+//       _id: new ObjectId(prescriptionId),
+//     });
+//     if (!prescription) {
+//       return res.status(404).json({ error: "Prescription not found" });
+//     }
+//     const updatedPrescription = await prescriptionCollection.updateOne(
+//       { _id: new ObjectId(prescriptionId) },
+//       {
+//         $set: {
+//           pharmacyInvoice: invoiceData,
+//           status: "awaiting_approval",
+//         },
+//       }
+//     );
+//     res.status(200).json({
+//       message: "Invoice added and prescription status updated",
+//       updatedPrescription,
+//     });
+//   } catch (err) {
+//     console.error("Error adding prescription:", err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+// exports.approveInvoice = async (req, res) => {
+//   const { prescriptionId } = req.params;
+
+//   try {
+//     await connectToDatabase();
+
+//     const prescription = await prescriptionCollection.findOne({
+//       _id: new ObjectId(prescriptionId),
+//     });
+//     if (!prescription) {
+//       return res.status(404).json({ error: "Prescription not found" });
+//     }
+//     const updatedPrescription = await prescriptionCollection.updateOne(
+//       { _id: new ObjectId(prescriptionId) },
+//       {
+//         $set: {
+//           status: "approved",
+//         },
+//       }
+//     );
+//   } catch (err) {
+//     console.error("Error adding prescription:", err);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };

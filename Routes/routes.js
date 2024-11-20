@@ -27,6 +27,10 @@ const {
   deleteComment,
   addPrescription,
   getPrescription,
+  getAppointmentsByDoctorId,
+  addPharmacyInvoice,
+  approveInvoice,
+  addPrescriptionFromPatient,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -78,12 +82,17 @@ module.exports = (app) => {
   app.post("/booking/:id", createAppointment);
   app.patch("/booking/:id", editAppointment);
   app.delete("/booking/:id", deleteAppointment);
+  app.get("/booking/doctor/:id", getAppointmentsByDoctorId);
   app.post("/comment/:doctorId", addComment);
   app.get("/comment/:doctorId", getCommentsByDoctor);
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
   app.get("/prescription/:id ", getPrescription);
 
+  // صيدلي
+  app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
+  // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
+  // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;
   //   console.log(req.body);
