@@ -50,8 +50,10 @@ const {
   addNewDrug,
   deleteDrugById,
   createFakePayment,
+  createSession,
+  joinRoom,
 } = require("../controller/auth");
-const { isLogined } = require("../middleware/auth");
+const { isUser } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
 // const uri =
 //   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
@@ -82,7 +84,7 @@ module.exports = (app) => {
   app.get("/", (req, res) => {
     res.status(200).json({ Message: "Hello" });
   });
-  app.get("/checkToken", isLogined, getData);
+  app.get("/checkToken", isUser, getData);
 
   // Regetration & Auth
   app.get("/logout", logout);
@@ -122,11 +124,22 @@ module.exports = (app) => {
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
   app.get("/prescription/:id ", getPrescription);
+<<<<<<< HEAD
   app.get("/drugs",getAllDrugs)
   app.get("/drugs/:id",getDrugById)
   app.put("/drugs/:id",updateDrugById)
   app.post("/drugs",addNewDrug)
   app.delete("/drugs/:id",deleteDrugById)
+=======
+  app.get("/drugs", getAllDrugs);
+  app.get("/drugs/:id", getDrugById);
+  app.put("/drugs/:id", updateDrugById);
+  app.post("/drugs", addNewDrug);
+  app.delete("/drugs/:id", deleteDrugById);
+  app.post("/api/rooms/create", createSession);
+  app.post("/api/rooms/join-room", joinRoom);
+  // صيدلي
+>>>>>>> 2d0cbdb197a75b10ed5d366957f7d6c42057027d
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
   // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
   // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
