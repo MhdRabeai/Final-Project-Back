@@ -66,7 +66,7 @@ module.exports = (app) => {
     res.status(200).json({ Message: "Hello" });
   });
   app.get("/checkToken", isLogined, getData);
-  // *******************************************
+
   // Regetration & Auth
   app.get("/logout", logout);
   app.get("/doctors", doctors);
