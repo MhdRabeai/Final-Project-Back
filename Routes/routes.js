@@ -15,6 +15,7 @@ const {
   // createFakePayment,
   createFakePayment,
   doctors,
+  
   patients,
   patientProfile,
   addPatient,
@@ -74,7 +75,7 @@ module.exports = (app) => {
   // Regetration & Auth
   app.get("/logout", logout);
   app.get("/doctors", doctors);
-  
+
   app.get("/patients", patients);
   app.get("/patientProfile?", patientProfile);
   app.post("/addPatient", addPatient);
