@@ -25,6 +25,7 @@ const {
   getDoctorInvoices,
   getCommentsByDoctor,
   deleteComment,
+  addPrescription,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -79,8 +80,8 @@ module.exports = (app) => {
   app.post("/comment/:doctorId", addComment);
   app.get("/comment/:doctorId", getCommentsByDoctor);
   app.delete("/comment/:commentId ", deleteComment);
-  app.post("/rescription ", addPrescription);
-  app.get("/rescription/:id ", addPrescription);
+  app.post("/prescription ", addPrescription);
+  app.get("/prescription/:id ", addPrescription);
 
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;

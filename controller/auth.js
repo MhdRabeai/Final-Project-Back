@@ -857,7 +857,9 @@ exports.deleteComment = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-exports.addPrescription = async (req, res) => {};
+exports.addPrescription = async (req, res) => {
+  const { patientId, doctorId, prescriptionDetails } = req.body;
+};
 exports.getPrescription = async (req, res) => {
   const { commentId } = req.params;
   try {
