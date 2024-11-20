@@ -52,6 +52,7 @@ module.exports = (app) => {
   // Regetration & Auth
   app.get("/logout", logout);
   app.get("/doctors", doctors);
+  app.post("/doctors",AddDoctors)
   app.get("/doctorProfile?", doctorProfile);
   app.post("/userRegister", upload.single("myfile"), userRegister);
   app.post("/register", upload.single("myfile"), register);

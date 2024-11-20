@@ -449,6 +449,9 @@ exports.doctors = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+exports.AddDoctor = async(req,res) =>{
+  
+}
 // exports.createPayment = async (req, res) => {
 //   const { amount } = req.body;
 
