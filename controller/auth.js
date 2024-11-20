@@ -1,5 +1,6 @@
 let bcryptjs = require("bcryptjs");
 const nodemailer = require("nodemailer");
+
 require("dotenv").config();
 var jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -468,36 +469,90 @@ exports.patients = async (req, res) => {
 };
 
 //add  patient with
+// exports.addPatient = async (req, res) => {
+//   try {
+//     await connectToDatabase();
+
+//     const {
+//       name,
+//       email,
+//       password,
+//       age,
+//       gender,
+//       phone,
+//       questions,
+//       challenges,
+//       areas,
+//       prev_therapy,
+//       self_harm,
+//       illness,
+//       life_changes,
+//       any_medication,
+//     } = req.body;
+
+//     const newUser = {
+//       name,
+//       email,
+//       password,
+//       age,
+//       gender,
+//       phone,
+//       avatar,
+//       role: "Patient",
+//       isActive: true,
+//       createdAt: new Date(),
+//     };
+
+//     const userResult = await userCollection.insertOne(newUser);
+
+//     const newPatient = {
+//       user_id: userResult.insertedId,
+//       questions,
+//       challenges,
+//       areas,
+//       prev_therapy,
+//       self_harm,
+//       illness,
+//       life_changes,
+//       any_medication,
+//     };
+
+//     const patientResult = await patientCollection.insertOne(newPatient);
+
+//     return res.status(201).json({
+//       message: "Patient added successfully",
+//       patient: { user_id: userResult.insertedId, ...newPatient },
+//     });
+//   } catch (err) {
+//     console.error("Error adding patient:", err);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
+
 exports.addPatient = async (req, res) => {
+  const {
+    name,
+    email,
+    password,
+    age,
+    gender,
+    phone,
+    questions, // Example field for questions
+  } = req.body;
+
   try {
     await connectToDatabase();
-
-    const {
-      name,
-      email,
-      password,
-      age,
-      gender,
-      phone,
-      questions,
-      challenges,
-      areas,
-      prev_therapy,
-      self_harm,
-      illness,
-      life_changes,
-      any_medication,
-    } = req.body;
 
     const newUser = {
       name,
       email,
-      password,
+      password, 
       age,
       gender,
       phone,
-      avatar,
-      role: "Patient",
+      avatar: "default-avatar.jpg", 
+      role: "patient",
       isActive: true,
       createdAt: new Date(),
     };
@@ -505,15 +560,8 @@ exports.addPatient = async (req, res) => {
     const userResult = await userCollection.insertOne(newUser);
 
     const newPatient = {
-      user_id: userResult.insertedId,
+      user_id: userResult.insertedId, 
       questions,
-      challenges,
-      areas,
-      prev_therapy,
-      self_harm,
-      illness,
-      life_changes,
-      any_medication,
     };
 
     const patientResult = await patientCollection.insertOne(newPatient);
@@ -527,9 +575,10 @@ exports.addPatient = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-//delete  patient with id
+
+// Delete patient with id
 exports.deletePatient = async (req, res) => {
-  const { id } = req.query;
+  const { id } = req.params; 
 
   try {
     await connectToDatabase();
@@ -574,37 +623,41 @@ exports.updatePatient = async (req, res) => {
   }
 };
 
-//get  patient with id
+// Get patient with id
 exports.patientProfile = async (req, res) => {
-  const { id } = req.query;
+  const  id  = req.params.id; 
 
   try {
     await connectToDatabase();
 
     const patientId = new ObjectId(id);
+
     const patientWithUserDetails = await patientCollection
       .aggregate([
         {
-          $match: { _id: patientId },
+          $match: { _id: patientId }, 
         },
         {
           $lookup: {
-            from: "user",
-            localField: "user_id",
+            from: "user", 
+            localField: "user_id", 
             foreignField: "_id",
-            as: "userDetails",
+            as: "userDetails", 
           },
         },
         {
           $unwind: {
-            path: "$userDetails",
-            preserveNullAndEmptyArrays: true,
+            path: "$userDetails", 
+            preserveNullAndEmptyArrays: true,  
           },
         },
       ])
       .toArray();
-
-    return res.status(200).json({ patient: patientWithUserDetails[0] });
+    if (patientWithUserDetails.length > 0) {
+      return res.status(200).json({ patient: patientWithUserDetails[0] });
+    } else {
+      return res.status(404).json({ error: "Patient not found" });
+    }
   } catch (err) {
     console.error("Error fetching patient:", err);
     return res.status(500).json({ error: "Internal server error" });
@@ -1456,6 +1509,73 @@ exports.addPharmacyInvoice = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+<<<<<<< HEAD
+exports.getAllBlogs = async (req, res) => {
+  try {
+    await connectToDatabase();
+    const blogs = await blogCollection.find({}).toArray();
+    res.status(200).json(blogs);
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    res.status(500).json({ message: "Error fetching blogs" });
+  }
+};
+
+exports.getBlogById = async (req, res) => {
+  try {
+    await connectToDatabase();
+    const blogId = req.params.id;
+    const blog = await blogCollection.findOne({ _id: new ObjectId(blogId) });
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+    res.status(200).json(blog);
+  } catch (error) {
+    console.error("Error fetching blog:", error);
+    res.status(500).json({ message: "Error fetching blog" });
+  }
+};
+
+exports.editBlog = async (req, res) => {
+  try {
+    await connectToDatabase();
+    const blogId = req.params.id;
+    const updatedData = req.body;
+
+    const result = await blogCollection.updateOne(
+      { _id: new ObjectId(blogId) },
+      { $set: updatedData }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    res.status(200).json({ message: "Blog updated successfully" });
+  } catch (error) {
+    console.error("Error editing blog:", error);
+    res.status(500).json({ message: "Error editing blog" });
+  }
+};
+
+exports.deleteBlog = async (req, res) => {
+  try {
+    await connectToDatabase();
+    const blogId = req.params.id;
+
+    const result = await blogCollection.deleteOne({ _id: new ObjectId(blogId) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    res.status(200).json({ message: "Blog deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting blog:", error);
+    res.status(500).json({ message: "Error deleting blog" });
+  }
+};
+=======
 
 exports.createSession = async (req, res) => {
   const { roomName, password, ownerId } = req.body;
@@ -1507,3 +1627,4 @@ exports.joinRoom = async (req, res) => {
     res.status(500).json({ error: "Failed to join room" });
   }
 };
+>>>>>>> 2d0cbdb197a75b10ed5d366957f7d6c42057027d
