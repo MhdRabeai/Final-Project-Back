@@ -43,6 +43,10 @@ const {
   getAllDrugs,
   getDrugById,
   updateDrugById,
+  getAllBlogs,
+  getBlogById,
+  editBlog,
+  deleteBlog,
   addNewDrug,
   deleteDrugById,
   createFakePayment,
@@ -87,12 +91,16 @@ module.exports = (app) => {
   app.get("/doctors", doctors);
 
   app.get("/patients", patients);
-  app.get("/patientProfile?", patientProfile);
+  app.get("/patientProfile/:id", patientProfile);
+
   app.post("/addPatient", addPatient);
-  app.delete("/deletePatient", deletePatient);
+  app.delete("/deletePatient/:id", deletePatient);
   app.put("/updatePatient", updatePatient);
   app.get("/doctorPatients", getDoctorPatients);
-
+  app.get("/getAllBlogs", getAllBlogs);
+  app.get("/getBlog/:id", getBlogById);
+  app.put("/editBlog/:id", editBlog);
+  app.delete("/deleteBlog/:id", deleteBlog)
   app.get("/doctorProfile?", doctorProfile);
   app.post("/userRegister", upload.single("myfile"), userRegister);
   app.post("/register", upload.single("myfile"), register);
@@ -116,6 +124,13 @@ module.exports = (app) => {
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
   app.get("/prescription/:id ", getPrescription);
+<<<<<<< HEAD
+  app.get("/drugs",getAllDrugs)
+  app.get("/drugs/:id",getDrugById)
+  app.put("/drugs/:id",updateDrugById)
+  app.post("/drugs",addNewDrug)
+  app.delete("/drugs/:id",deleteDrugById)
+=======
   app.get("/drugs", getAllDrugs);
   app.get("/drugs/:id", getDrugById);
   app.put("/drugs/:id", updateDrugById);
@@ -124,6 +139,7 @@ module.exports = (app) => {
   app.post("/api/rooms/create", createSession);
   app.post("/api/rooms/join-room", joinRoom);
   // صيدلي
+>>>>>>> 2d0cbdb197a75b10ed5d366957f7d6c42057027d
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
   // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
   // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
