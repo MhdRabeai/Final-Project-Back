@@ -1518,7 +1518,7 @@ exports.addPharmacyInvoice = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-<<<<<<< HEAD
+
 exports.getAllBlogs = async (req, res) => {
   try {
     await connectToDatabase();
@@ -1584,7 +1584,7 @@ exports.deleteBlog = async (req, res) => {
     res.status(500).json({ message: "Error deleting blog" });
   }
 };
-=======
+
 
 exports.createSession = async (req, res) => {
   const { roomName, password, ownerId } = req.body;
@@ -1636,4 +1636,4 @@ exports.joinRoom = async (req, res) => {
     res.status(500).json({ error: "Failed to join room" });
   }
 };
->>>>>>> 2d0cbdb197a75b10ed5d366957f7d6c42057027d
+

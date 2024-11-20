@@ -124,13 +124,13 @@ module.exports = (app) => {
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
   app.get("/prescription/:id ", getPrescription);
-<<<<<<< HEAD
+
   app.get("/drugs",getAllDrugs)
   app.get("/drugs/:id",getDrugById)
   app.put("/drugs/:id",updateDrugById)
   app.post("/drugs",addNewDrug)
   app.delete("/drugs/:id",deleteDrugById)
-=======
+
   app.get("/drugs", getAllDrugs);
   app.get("/drugs/:id", getDrugById);
   app.put("/drugs/:id", updateDrugById);
@@ -139,7 +139,7 @@ module.exports = (app) => {
   app.post("/api/rooms/create", createSession);
   app.post("/api/rooms/join-room", joinRoom);
   // صيدلي
->>>>>>> 2d0cbdb197a75b10ed5d366957f7d6c42057027d
+
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
   // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
   // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
