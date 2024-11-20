@@ -16,6 +16,13 @@ const {
   createPayment,
   // createFakePayment,
   doctors,
+  
+  patients,
+  patientProfile,
+  addPatient,
+  deletePatient,
+  updatePatient,
+  getDoctorPatients,
   createAppointment,
   editAppointment,
   deleteAppointment,
@@ -70,6 +77,14 @@ module.exports = (app) => {
   // Regetration & Auth
   app.get("/logout", logout);
   app.get("/doctors", doctors);
+
+  app.get("/patients", patients);
+  app.get("/patientProfile?", patientProfile);
+  app.post("/addPatient", addPatient);
+  app.delete("/deletePatient", deletePatient)
+  app.put("/updatePatient", updatePatient)
+  app.get("/doctorPatients", getDoctorPatients)
+
   app.get("/doctorProfile?", doctorProfile);
   app.post("/userRegister", upload.single("myfile"), userRegister);
   app.post("/register", upload.single("myfile"), register);
