@@ -529,7 +529,6 @@ exports.patients = async (req, res) => {
 //   }
 // };
 
-
 exports.addPatient = async (req, res) => {
   const {
     name,
@@ -547,11 +546,11 @@ exports.addPatient = async (req, res) => {
     const newUser = {
       name,
       email,
-      password, 
+      password,
       age,
       gender,
       phone,
-      avatar: "default-avatar.jpg", 
+      avatar: "default-avatar.jpg",
       role: "patient",
       isActive: true,
       createdAt: new Date(),
@@ -560,7 +559,7 @@ exports.addPatient = async (req, res) => {
     const userResult = await userCollection.insertOne(newUser);
 
     const newPatient = {
-      user_id: userResult.insertedId, 
+      user_id: userResult.insertedId,
       questions,
     };
 
@@ -578,7 +577,7 @@ exports.addPatient = async (req, res) => {
 
 // Delete patient with id
 exports.deletePatient = async (req, res) => {
-  const { id } = req.params; 
+  const { id } = req.params;
 
   try {
     await connectToDatabase();
@@ -625,7 +624,7 @@ exports.updatePatient = async (req, res) => {
 
 // Get patient with id
 exports.patientProfile = async (req, res) => {
-  const  id  = req.params.id; 
+  const id = req.params.id;
 
   try {
     await connectToDatabase();
@@ -635,20 +634,20 @@ exports.patientProfile = async (req, res) => {
     const patientWithUserDetails = await patientCollection
       .aggregate([
         {
-          $match: { _id: patientId }, 
+          $match: { _id: patientId },
         },
         {
           $lookup: {
-            from: "user", 
-            localField: "user_id", 
+            from: "user",
+            localField: "user_id",
             foreignField: "_id",
-            as: "userDetails", 
+            as: "userDetails",
           },
         },
         {
           $unwind: {
-            path: "$userDetails", 
-            preserveNullAndEmptyArrays: true,  
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
           },
         },
       ])
@@ -1509,7 +1508,6 @@ exports.addPharmacyInvoice = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-<<<<<<< HEAD
 exports.getAllBlogs = async (req, res) => {
   try {
     await connectToDatabase();
@@ -1563,7 +1561,9 @@ exports.deleteBlog = async (req, res) => {
     await connectToDatabase();
     const blogId = req.params.id;
 
-    const result = await blogCollection.deleteOne({ _id: new ObjectId(blogId) });
+    const result = await blogCollection.deleteOne({
+      _id: new ObjectId(blogId),
+    });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: "Blog not found" });
@@ -1575,56 +1575,3 @@ exports.deleteBlog = async (req, res) => {
     res.status(500).json({ message: "Error deleting blog" });
   }
 };
-=======
-
-exports.createSession = async (req, res) => {
-  const { roomName, password, ownerId } = req.body;
-  console.log(roomName);
-  try {
-    const newRoom = {
-      _id: new ObjectId(),
-      roomName,
-      ownerId: new ObjectId(ownerId),
-      password,
-      participants: [],
-    };
-    const room = await sessionCollection.insertOne(newRoom);
-    console.log(room);
-    if (room) {
-      console.log("rooooom");
-      return res.status(200).json(room);
-    }
-  } catch (err) {
-    console.log("Error", err.message);
-    return res.status(500).json({ error: "Failed to create room" });
-  }
-};
-exports.joinRoom = async (req, res) => {
-  const { user_id, roomName, password } = req.body;
-  try {
-    const room = await sessionCollection.findOne({
-      roomName,
-    });
-    if (!room) return res.status(404).json({ error: "Room not found" });
-
-    if (room.password && room.password !== password) {
-      return res.status(400).json({ error: "Incorrect password" });
-    }
-    socket.emit("joinRoom", { roomName, user_id });
-    await sessionCollection.updateOne(
-      { roomName: roomName },
-      {
-        $push: {
-          participants: {
-            user_id: new ObjectId(user_id),
-            joinedAt: new Date(),
-          },
-        },
-      }
-    );
-    res.json({ message: "Successfully joined the room" });
-  } catch (err) {
-    res.status(500).json({ error: "Failed to join room" });
-  }
-};
->>>>>>> 2d0cbdb197a75b10ed5d366957f7d6c42057027d
