@@ -7,7 +7,7 @@ const cors = require("cors");
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
-require("./Routes/routes")(app);
+
 // const uri =
 //   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
 
@@ -18,31 +18,28 @@ require("./Routes/routes")(app);
 //     deprecationErrors: true,
 //   },
 // });
-const { Server } = require("socket.io");
+const socketIo = require("socket.io");
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:3000",
-    method: ["GET", "POST"],
-  },
+const io = socketIo(server, {
+  transports: ["websocket"],
 });
-const userRoutes = require("./Routes/userRoutes");
-const roomRoutes = require("./Routes/roomRoutes");
+// const userRoutes = require("./Routes/userRoutes");
+// const roomRoutes = require("./Routes/roomRoutes");
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use("/api/users", userRoutes);
+// app.use("/api/users", userRoutes);
 // app.use("/api/rooms", roomRoutes);
 const { connectDB } = require("./config/db");
 // app.use("/user", myRoutes);
 io.on("connection", (socket) => {
   console.log("✅ A user connected:", socket.id);
 
-  socket.on("joinRoom", ({ roomId, userId }) => {
-    socket.join(roomId);
+  socket.on("joinRoom", ({ roomName, userId }) => {
+    socket.join(roomName);
 
     console.log(`User ${userId} joined room ${roomId}`);
 
@@ -67,7 +64,9 @@ io.on("connection", (socket) => {
   socket.on("acceptCall", (signalData) => {
     socket.to(signalData.userId).emit("callAccepted", signalData);
   });
-  // فصل المستخدم
+  socket.on("error", (err) => {
+    console.log("WebSocket error:", err);
+  });
   socket.on("disconnect", () => {
     console.log("❌ A user disconnected:", socket.id);
   });
@@ -77,7 +76,7 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-
+require("./Routes/routes")(app);
 connectDB().then(() => {
   app.listen(PORT, () =>
     console.log(`Server running on http://localhost:${PORT}`)

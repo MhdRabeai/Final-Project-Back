@@ -391,15 +391,11 @@ exports.getData = async (req, res) => {
     const id = new ObjectId(req.user["id"]);
     const user = await userCollection.findOne({ _id: id });
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
     console.log(user);
     return res.status(200).json({ user });
   } catch (err) {
     console.error("Error fetching user:", err);
-    return res.status(200).json({ user: "" });
+    return res.status(404);
   }
 };
 
@@ -1340,9 +1336,6 @@ exports.approveInvoice = async (req, res) => {
   }
 };
 
-
-
-
 exports.getAllDrugs = async (req, res) => {
   try {
     const drugs = await medicationCollection
@@ -1356,7 +1349,7 @@ exports.getAllDrugs = async (req, res) => {
 };
 exports.getDrugById = async (req, res) => {
   try {
-    const { id } = req.params; 
+    const { id } = req.params;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid ID format" });
@@ -1375,7 +1368,7 @@ exports.getDrugById = async (req, res) => {
 };
 exports.updateDrugById = async (req, res) => {
   try {
-    const { id } = req.params; 
+    const { id } = req.params;
     const updateData = req.body;
 
     if (!ObjectId.isValid(id)) {
@@ -1383,7 +1376,7 @@ exports.updateDrugById = async (req, res) => {
     }
 
     const result = await medicationCollection.updateOne(
-      { _id: new ObjectId(id) }, 
+      { _id: new ObjectId(id) },
       { $set: updateData }
     );
 
@@ -1399,13 +1392,15 @@ exports.updateDrugById = async (req, res) => {
 };
 exports.deleteDrugById = async (req, res) => {
   try {
-    const { id } = req.params; 
+    const { id } = req.params;
 
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid ID format" });
     }
 
-    const result = await medicationCollection.deleteOne({ _id: new ObjectId(id) });
+    const result = await medicationCollection.deleteOne({
+      _id: new ObjectId(id),
+    });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: "Drug not found" });
@@ -1418,17 +1413,24 @@ exports.deleteDrugById = async (req, res) => {
 };
 exports.addNewDrug = async (req, res) => {
   try {
-    const newDrug = req.body; 
+    const newDrug = req.body;
 
-    if (!newDrug.name || !newDrug.price || !newDrug.description || !newDrug.stock) {
-      return res.status(400).json({ message: "Missing required fields: name, price, description, stock" });
+    if (
+      !newDrug.name ||
+      !newDrug.price ||
+      !newDrug.description ||
+      !newDrug.stock
+    ) {
+      return res.status(400).json({
+        message: "Missing required fields: name, price, description, stock",
+      });
     }
 
     const result = await medicationCollection.insertOne(newDrug);
 
-    return res.status(201).json({ 
-      message: "Drug added successfully", 
-      drugId: result.insertedId 
+    return res.status(201).json({
+      message: "Drug added successfully",
+      drugId: result.insertedId,
     });
   } catch (error) {
     return res.status(500).json({ message: "Error adding new drug", error });
@@ -1461,5 +1463,56 @@ exports.addPharmacyInvoice = async (req, res) => {
   } catch (err) {
     console.error("Error adding prescription:", err);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+exports.createSession = async (req, res) => {
+  const { roomName, password, ownerId } = req.body;
+  console.log(roomName);
+  try {
+    const newRoom = {
+      _id: new ObjectId(),
+      roomName,
+      ownerId: new ObjectId(ownerId),
+      password,
+      participants: [],
+    };
+    const room = await sessionCollection.insertOne(newRoom);
+    console.log(room);
+    if (room) {
+      console.log("rooooom");
+      return res.status(200).json(room);
+    }
+  } catch (err) {
+    console.log("Error", err.message);
+    return res.status(500).json({ error: "Failed to create room" });
+  }
+};
+exports.joinRoom = async (req, res) => {
+  const { user_id, roomName, password } = req.body;
+  try {
+    const room = await sessionCollection.findOne({
+      roomName,
+    });
+    if (!room) return res.status(404).json({ error: "Room not found" });
+
+    if (room.password && room.password !== password) {
+      return res.status(400).json({ error: "Incorrect password" });
+    }
+    socket.emit("joinRoom", { roomName, user_id });
+    await sessionCollection.updateOne(
+      { roomName: roomName },
+      {
+        $push: {
+          participants: {
+            user_id: new ObjectId(user_id),
+            joinedAt: new Date(),
+          },
+        },
+      }
+    );
+    res.json({ message: "Successfully joined the room" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to join room" });
   }
 };
