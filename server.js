@@ -7,21 +7,22 @@ const cors = require("cors");
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
+require("./Routes/routes")(app);
+// const uri =
+//   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
 
-const uri =
-  "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
+// const client = new MongoClient(uri, {
+//   serverApi: {
+//     version: ServerApiVersion.v1,
+//     strict: true,
+//     deprecationErrors: true,
+//   },
+// });
+const { Server } = require("socket.io");
 const server = http.createServer(app);
-const io = require("socket.io")(server, {
+const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:3000",
     method: ["GET", "POST"],
   },
 });
@@ -40,23 +41,19 @@ const { connectDB } = require("./config/db");
 io.on("connection", (socket) => {
   console.log("✅ A user connected:", socket.id);
 
-  // الانضمام إلى غرفة
   socket.on("joinRoom", ({ roomId, userId }) => {
     socket.join(roomId);
 
     console.log(`User ${userId} joined room ${roomId}`);
 
-    // إعلام باقي المستخدمين في الغرفة
     io.to(roomId).emit("userJoined", { userId });
   });
 
-  // مغادرة الغرفة
   socket.on("leaveRoom", ({ roomId, userId }) => {
     socket.leave(roomId);
 
     console.log(`User ${userId} left room ${roomId}`);
 
-    // إعلام باقي المستخدمين في الغرفة
     io.to(roomId).emit("userLeft", { userId });
   });
   socket.on("startCall", (userId) => {
@@ -80,7 +77,7 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-require("./Routes/routes")(app);
+
 connectDB().then(() => {
   app.listen(PORT, () =>
     console.log(`Server running on http://localhost:${PORT}`)

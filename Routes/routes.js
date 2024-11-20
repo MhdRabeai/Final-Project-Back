@@ -16,7 +16,7 @@ const {
   createPayment,
   // createFakePayment,
   doctors,
-  
+
   patients,
   patientProfile,
   addPatient,
@@ -44,7 +44,12 @@ const {
   addPharmacyInvoice,
   approveInvoice,
   addPrescriptionFromPatient,
-
+  getAllDrugs,
+  getDrugById,
+  updateDrugById,
+  addNewDrug,
+  deleteDrugById,
+  createFakePayment,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -98,8 +103,6 @@ module.exports = (app) => {
 
   app.get("/logout", logout);
   app.get("/doctorProfile?", doctorProfile);
-  app.post("/process-payment", createPayment);
-
   // app.post("/process-payment-real", createPayment);
   app.post("/process-payment", createFakePayment);
   app.get("/invoices", getInvoices);

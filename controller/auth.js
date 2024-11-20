@@ -47,8 +47,7 @@ const patientCollection = db.collection("patient");
 const adminCollection = db.collection("admin");
 const doctorCollection = db.collection("doctor");
 const pharmacistCollection = db.collection("pharmacist");
-const drugCollection = db.createCollection("drug")
-;
+const drugCollection = db.createCollection("drug");
 // ***********
 const appointmentCollection = db.collection("appointment");
 const sessionCollection = db.collection("session");
@@ -481,7 +480,7 @@ exports.patients = async (req, res) => {
   }
 };
 
-//add  patient with 
+//add  patient with
 exports.addPatient = async (req, res) => {
   try {
     await connectToDatabase();
@@ -541,7 +540,7 @@ exports.addPatient = async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-//delete  patient with id 
+//delete  patient with id
 exports.deletePatient = async (req, res) => {
   const { id } = req.query;
 
@@ -588,7 +587,7 @@ exports.updatePatient = async (req, res) => {
   }
 };
 
-//get  patient with id 
+//get  patient with id
 exports.patientProfile = async (req, res) => {
   const { id } = req.query;
 
@@ -783,7 +782,7 @@ exports.createFakePayment = async (req, res) => {
         },
         {
           $project: {
-            _id: 1, 
+            _id: 1,
             user_id: 1,
             questions: 1,
             "userDetails.name": 1,
@@ -1286,129 +1285,35 @@ exports.addPrescriptionFromPatient = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-exports.getAllDrugs = async (req, res) => {
-  try {
-    const drugs = await medicationCollection
-      .find({})
-      .sort({ name: 1 })
-      .toArray();
-    return res.status(200).json(drugs);
-  } catch (error) {
-    return res.status(500).json({ message: "Error fetching drugs", error });
-  }
-};
-exports.getDrugById = async (req, res) => {
-  try {
-    const { id } = req.params; 
+// exports.addPharmacyInvoice = async (req, res) => {
+//   const { prescriptionId, invoiceData } = req.body;
 
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid ID format" });
-    }
-
-    const drug = await medicationCollection.findOne({ _id: new ObjectId(id) });
-
-    if (!drug) {
-      return res.status(404).json({ message: "Drug not found" });
-    }
-
-    return res.status(200).json(drug);
-  } catch (error) {
-    return res.status(500).json({ message: "Error fetching drug", error });
-  }
-};
-exports.updateDrugById = async (req, res) => {
-  try {
-    const { id } = req.params; 
-    const updateData = req.body;
-
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid ID format" });
-    }
-
-    const result = await medicationCollection.updateOne(
-      { _id: new ObjectId(id) }, 
-      { $set: updateData }
-    );
-
-    // Check if a document was modified
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ message: "Drug not found" });
-    }
-
-    return res.status(200).json({ message: "Drug updated successfully" });
-  } catch (error) {
-    return res.status(500).json({ message: "Error updating drug", error });
-  }
-};
-exports.deleteDrugById = async (req, res) => {
-  try {
-    const { id } = req.params; 
-
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ message: "Invalid ID format" });
-    }
-
-    const result = await medicationCollection.deleteOne({ _id: new ObjectId(id) });
-
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Drug not found" });
-    }
-
-    return res.status(200).json({ message: "Drug deleted successfully" });
-  } catch (error) {
-    return res.status(500).json({ message: "Error deleting drug", error });
-  }
-};
-exports.addNewDrug = async (req, res) => {
-  try {
-    const newDrug = req.body; 
-
-    if (!newDrug.name || !newDrug.price || !newDrug.description || !newDrug.stock) {
-      return res.status(400).json({ message: "Missing required fields: name, price, description, stock" });
-    }
-
-    const result = await medicationCollection.insertOne(newDrug);
-
-    return res.status(201).json({ 
-      message: "Drug added successfully", 
-      drugId: result.insertedId 
-    });
-  } catch (error) {
-    return res.status(500).json({ message: "Error adding new drug", error });
-  }
-};
-
-
- 
-exports.addPharmacyInvoice = async (req, res) => {
-  const { prescriptionId, invoiceData } = req.body;
-
-  try {
-    await connectToDatabase();
-    const prescription = await pharmPrescriptionCollection.findOne({
-      _id: new ObjectId(prescriptionId),
-    });
-    if (!prescription) {
-      return res.status(404).json({ error: "Prescription not found" });
-    }
-    const updatedPrescription = await prescriptionCollection.updateOne(
-      { _id: new ObjectId(prescriptionId) },
-      {
-        $set: {
-          pharmacyInvoice: invoiceData,
-          status: "awaiting_approval",
-        },
-      }
-    );
-    res.status(200).json({
-      message: "Invoice added and prescription status updated",
-      updatedPrescription,
-    });
-  } catch (err) {
-    console.error("Error adding prescription:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
+// try {
+//   await connectToDatabase();
+//   const prescription = await pharmPrescriptionCollection.findOne({
+//     _id: new ObjectId(prescriptionId),
+//   });
+//   if (!prescription) {
+//     return res.status(404).json({ error: "Prescription not found" });
+//   }
+//   const updatedPrescription = await prescriptionCollection.updateOne(
+//     { _id: new ObjectId(prescriptionId) },
+//     {
+//       $set: {
+//         pharmacyInvoice: invoiceData,
+//         status: "awaiting_approval",
+//       },
+//     }
+//   );
+//   res.status(200).json({
+//     message: "Invoice added and prescription status updated",
+//     updatedPrescription,
+//   });
+// } catch (err) {
+//   console.error("Error adding prescription:", err);
+//   res.status(500).json({ error: "Internal server error" });
+// }
+// };
 exports.approveInvoice = async (req, res) => {
   const { prescriptionId } = req.params;
 
