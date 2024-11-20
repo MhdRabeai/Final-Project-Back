@@ -98,28 +98,28 @@ module.exports = (app) => {
 
   // صيدلي
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
-  // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
-  // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
+  app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
+  app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
 
-  // app.post("/api/rooms/create", async (req, res) => {
-  //   const { name, password } = req.body;
-  //   console.log(req.body);
-  //   // const userId = req.user.id;
+  app.post("/api/rooms/create", async (req, res) => {
+    const { name, password } = req.body;
+    console.log(req.body);
+    // const userId = req.user.id;
 
-  //   try {
-  //     const newRoom = {
-  //       name,
-  //       // ownerId: "10",
-  //       password,
-  //       participants: [],
-  //     };
-  //     const room = await db.collection("rooms").insertOne(newRoom);
-  //     console.log(room);
-  //     res.status(201).json(room.ops[0]); // ops[0] للحصول على الكائن المحفوظ
-  //   } catch (err) {
-  //     res.status(500).json({ error: "Failed to create room" });
-  //   }
-  // });
+    try {
+      const newRoom = {
+        name,
+        // ownerId: "10",
+        password,
+        participants: [],
+      };
+      const room = await db.collection("rooms").insertOne(newRoom);
+      console.log(room);
+      res.status(201).json(room.ops[0]); // ops[0] للحصول على الكائن المحفوظ
+    } catch (err) {
+      res.status(500).json({ error: "Failed to create room" });
+    }
+  });
 
   // app.post("/api/rooms/join-room/:roomId", authMiddleware, async (req, res) => {
   //   const { roomId } = req.params;
