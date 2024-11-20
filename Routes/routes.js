@@ -39,6 +39,11 @@ const {
   addPharmacyInvoice,
   approveInvoice,
   addPrescriptionFromPatient,
+  getAllDrugs,
+  getDrugById,
+  updateDrugById,
+  addNewDrug,
+  deleteDrugById,
 
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
@@ -110,11 +115,15 @@ module.exports = (app) => {
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
   app.get("/prescription/:id ", getPrescription);
-
+  app.get("/drugs",getAllDrugs)
+  app.get("/dugs/:id",getDrugById)
+  app.put("/drugs/:id",updateDrugById)
+  app.post("/drugs",addNewDrug)
+  app.delete("drugs/:id",deleteDrugById)
   // صيدلي
   // app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
-  app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
-  app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
+  // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
+  // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
 
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;
