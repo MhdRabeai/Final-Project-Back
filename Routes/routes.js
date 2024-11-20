@@ -81,7 +81,7 @@ module.exports = (app) => {
   app.get("/comment/:doctorId", getCommentsByDoctor);
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
-  app.get("/prescription/:id ", addPrescription);
+  app.get("/prescription/:id ", getPrescription);
 
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;
