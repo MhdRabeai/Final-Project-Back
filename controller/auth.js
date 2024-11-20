@@ -56,6 +56,7 @@ const medicationCollection = db.collection("medication");
 const reviewCollection = db.collection("review");
 const blogCollection = db.collection("blog");
 
+// ***********************
 async function connectToDatabase() {
   try {
     if (!client.topology || !client.topology.isConnected()) {
@@ -149,7 +150,7 @@ exports.userRegister = async (req, res) => {
       console.log("User inserted successfully", userInsertResult);
 
       const patientData = {
-        user_id: userData._id,
+        user_id: new ObjectId(userData._id),
         questions: {
           feeling,
           challenges,
@@ -176,16 +177,6 @@ exports.userRegister = async (req, res) => {
         subject: "Confirmation email",
         text: `Hello ${name},\n\nYour registration code is: ${confirmationCode}\n\nThank you for registering with us!`,
       };
-
-      // transporter
-      //   .sendMail({
-      //     from: sender,
-      //     to: recipients,
-      //     subject: "Confirmation email",
-      //     text: `Hello ${name},\n\nYour registration code is: ${confirmationCode}\n\nThank you for registering with us!`,
-      //     category: "Integration Test",
-      //   })
-      //   .then(console.log, console.error);
       transporter.sendMail(mailOptions, (err, info) => {
         if (err) {
           console.error("Error:", err);
@@ -276,7 +267,7 @@ exports.register = async (req, res) => {
       gender,
       phone,
       avatar: req.file?.filename || "default-avatar.jpg",
-      role: "user",
+      role,
       isActive: false,
       createdAt: new Date(),
     };
@@ -285,7 +276,7 @@ exports.register = async (req, res) => {
     console.log("Patient data inserted successfully", userInsertResult);
     if (role == "admin") {
       const adminData = {
-        user_id: userData._id,
+        user_id: new ObjectId(userData._id),
         Job_title: "admin",
       };
       console.log("Inserting admin data into database...");
@@ -293,7 +284,7 @@ exports.register = async (req, res) => {
       console.log("admin data inserted successfully", adminInsertResult);
     } else if (role == "patient") {
       const patientData = {
-        user_id: userData._id,
+        user_id: new ObjectId(userData._id),
         questions: {
           feeling,
           challenges: [],
@@ -312,10 +303,11 @@ exports.register = async (req, res) => {
       console.log("Patient data inserted successfully", patientInsertResult);
     } else if (role == "doctor") {
       const doctorData = {
-        user_id: userData._id,
+        user_id: new Object(userData._id),
         specialization: "",
         headLine: "",
         session_price: "",
+        experience: "",
         availableTime: [""],
       };
       console.log("Inserting doctor data into database...");
@@ -409,24 +401,36 @@ exports.getData = async (req, res) => {
   }
 };
 exports.doctorProfile = async (req, res) => {
-  const { doctorId } = req.query;
+  const { id } = req.query;
 
   try {
     await connectToDatabase();
 
-    const id = new ObjectId(doctorId);
-
-    const user = await userCollection.findOne({ _id: id });
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    const doctor = await doctorCollection.findOne({ user_id: user["_id"] });
-    if (!doctor) {
-      return res.status(404).json({ error: "doctor not found" });
-    }
-    return res.status(200).json({ user, doctor });
+    const doctorId = new ObjectId(id);
+    const doctorWithUserDetails = await doctorCollection
+      .aggregate([
+        {
+          $match: { _id: doctorId },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ])
+      .toArray();
+    return res.status(200).json({ doctor: doctorWithUserDetails[0] });
   } catch (err) {
-    console.error("Error fetching user:", err);
+    console.error("Error fetching doctor:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -434,16 +438,37 @@ exports.doctors = async (req, res) => {
   try {
     await connectToDatabase();
 
-    const data = await doctorCollection.find({}).toArray();
+    const doctors = await userCollection
+      .aggregate([
+        {
+          $match: { role: "doctor" },
+        },
+        {
+          $lookup: {
+            from: doctorCollection.collectionName,
+            let: { user_id: "$_id" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ["$user_id", { $toObjectId: "$$user_id" }] },
+                },
+              },
+            ],
+            as: "doctorDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$doctorDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ])
+      .toArray();
 
-    if (!data) {
-      return res.status(404).json({ error: "Doctors not found" });
-    }
-    // const doctor = await doctorCollection.findOne({ user_id: user["_id"] });
-    // if (!doctor) {
-    //   return res.status(404).json({ error: "doctor not found" });
-    // }
-    return res.status(200).json({ doctors: data });
+    console.log("Doctors with details:", doctors);
+
+    return res.status(200).json({ doctors });
   } catch (err) {
     console.error("Error fetching user:", err);
     return res.status(500).json({ error: "Internal server error" });
@@ -467,29 +492,230 @@ exports.doctors = async (req, res) => {
 //     res.status(500).send({ error: error.message });
 //   }
 // };
-exports.createFakePayment = (req, res) => {
-  const { from, to, amount } = req.body;
-  console.log(from);
-  console.log(to);
-  console.log(amount);
-  // res.status(200).json({ message: "done" });
+exports.createFakePayment = async (req, res) => {
+  const { from, to } = req.body;
+
+  try {
+    await connectToDatabase();
+    const patientWithUserDetails = await patientCollection
+      .aggregate([
+        {
+          $match: { user_id: new ObjectId(from) },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            user_id: 1,
+            questions: 1,
+            "userDetails.name": 1,
+            "userDetails.email": 1,
+            "userDetails.phone": 1,
+            "userDetails.avatar": 1,
+            "userDetails.role": 1,
+          },
+        },
+      ])
+      .toArray();
+    const doctorWithUserDetails = await doctorCollection
+      .aggregate([
+        {
+          $match: { _id: new ObjectId(to) },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ])
+      .toArray();
+    const collections = await db.listCollections().toArray();
+    const collectionNames = collections.map((col) => col.name);
+    if (!collectionNames.includes("invoice")) {
+      await db.createCollection("invoice");
+      console.log('Collection "invoice" created');
+    }
+    const invoiceData = {
+      _id: new ObjectId(),
+      form: patientWithUserDetails[0]["userDetails"]["_id"],
+      patient_name: patientWithUserDetails[0]["userDetails"]["name"],
+      to: doctorWithUserDetails[0]["userDetails"]["_id"],
+      destination: doctorWithUserDetails[0]["userDetails"]["name"],
+      amount: doctorWithUserDetails[0]["session_price"],
+      created_at: new Date(),
+    };
+    console.log("Inserting invoice data into database...");
+    const invoicetInsertResult = await invoiceCollection.insertOne(invoiceData);
+    console.log("invoice data inserted successfully", invoicetInsertResult);
+
+    res.status(200).json({
+      message: "Done",
+    });
+  } catch (err) {
+    return res.status(500).send({ error: error.message });
+  }
 };
-exports.createAppointment = (req, res) => {
-  // console.log(from);
-  // console.log(to);
-  // console.log(amount);
-  // try {
-  //   const paymentIntent = await stripe.paymentIntents.create({
-  //     amount: Math.floor(amount * 100),
-  //     currency: "usd",
-  //     payment_method_types: ["card"],
-  //   });
-  //   amountHolder = amount;
-  //   console.log("End Payment");
-  //   console.log(await paymentIntent.client_secret);
-  //   res.send({ clientSecret: await paymentIntent.client_secret });
-  // } catch (error) {
-  //   console.log("error Payment");
-  //   res.status(500).send({ error: error.message });
-  // }
+exports.createAppointment = async (req, res) => {
+  const { from, to, selectedTime, userCondition } = req.body;
+
+  try {
+    await connectToDatabase();
+    const patientWithUserDetails = await patientCollection
+      .aggregate([
+        {
+          $match: { user_id: new ObjectId(from) },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            user_id: 1,
+            questions: 1,
+            "userDetails.name": 1,
+            "userDetails.email": 1,
+            "userDetails.phone": 1,
+            "userDetails.avatar": 1,
+            "userDetails.role": 1,
+          },
+        },
+      ])
+      .toArray();
+    console.log("asdasdasdas", patientWithUserDetails[0]["_id"]);
+    const doctorWithUserDetails = await doctorCollection
+      .aggregate([
+        {
+          $match: { _id: new ObjectId(to) },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ])
+      .toArray();
+    const collections = await db.listCollections().toArray();
+    const collectionNames = collections.map((col) => col.name);
+    if (!collectionNames.includes("appointment")) {
+      await db.createCollection("appointment");
+      console.log('Collection "appointment" created');
+    }
+    const appointmentData = {
+      _id: new ObjectId(),
+      form: patientWithUserDetails[0]["_id"],
+      patient_name: patientWithUserDetails[0]["userDetails"]["name"],
+      to: doctorWithUserDetails[0]["userDetails"]["_id"],
+      doctor_name: doctorWithUserDetails[0]["userDetails"]["name"],
+      selectedTime,
+      userCondition,
+      status: "on_hold",
+      created_at: new Date(),
+    };
+    console.log("object", patientWithUserDetails[0]["_id"]);
+    console.log("Inserting patient data into database...");
+    const appointmentInsertResult = await appointmentCollection.insertOne(
+      appointmentData
+    );
+    console.log(
+      "appointmentt data inserted successfully",
+      appointmentInsertResult
+    );
+
+    res.status(200).json({
+      message: "Done",
+    });
+  } catch (err) {
+    return res.status(500).send({ error: err.message });
+  }
+};
+exports.editAppointment = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  try {
+    await connectToDatabase();
+    const oldAppointment = await appointmentCollection.findOne({
+      _id: new ObjectId(id),
+    });
+    if (!oldAppointment) {
+      return res.status(404).send({ error: "there is no Appointment" });
+    }
+    const result = await appointmentCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { status: status } }
+    );
+
+    if (result.modifiedCount > 0) {
+      const updatedAppointment = await appointmentCollection.findOne({
+        _id: new ObjectId(id),
+      });
+      res.status(200).json({
+        data: updatedAppointment,
+      });
+    } else {
+      res.status(404).json({ message: "Not Found" });
+    }
+  } catch (err) {
+    return res.status(500).send({ error: err.message });
+  }
+};
+exports.deleteAppointment = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await connectToDatabase();
+    const result = await appointmentCollection.deleteOne({
+      _id: new ObjectId(id),
+    });
+    if (result.deletedCount > 0) {
+      res.status(200).json({
+        message: "Done",
+      });
+    } else {
+      res.status(404).json({ message: "Not Found" });
+    }
+  } catch (err) {
+    return res.status(500).send({ error: err.message });
+  }
 };

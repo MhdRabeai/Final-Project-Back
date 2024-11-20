@@ -15,6 +15,9 @@ const {
   // createFakePayment,
   createFakePayment,
   doctors,
+  createAppointment,
+  editAppointment,
+  deleteAppointment,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -59,6 +62,9 @@ module.exports = (app) => {
   app.post("/login", login);
   // app.post("/process-payment-real", createPayment);
   app.post("/process-payment", createFakePayment);
+  app.post("/booking", createAppointment);
+  app.patch("/edit-booking/:id", editAppointment);
+  app.patch("/delete-booking/:id", deleteAppointment);
 
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;
