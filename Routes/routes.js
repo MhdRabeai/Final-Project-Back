@@ -26,6 +26,7 @@ const {
   getCommentsByDoctor,
   deleteComment,
   addPrescription,
+  getPrescription,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");

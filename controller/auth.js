@@ -858,22 +858,83 @@ exports.deleteComment = async (req, res) => {
   }
 };
 exports.addPrescription = async (req, res) => {
-  const { patientId, doctorId, prescriptionDetails } = req.body;
+  const { patient_name, patient_email, doctorId } = req.body;
+  // avatar: req.file?.filename
+  try {
+    await connectToDatabase();
+    const patientWithUserDetails = await patientCollection
+      .aggregate([
+        {
+          $match: {
+            "userDetails.name": patient_name,
+            "userDetails.email": patient_email,
+          },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            user_id: 1,
+            questions: 1,
+            "userDetails.name": 1,
+            "userDetails.email": 1,
+            "userDetails.phone": 1,
+            "userDetails.avatar": 1,
+            "userDetails.role": 1,
+          },
+        },
+      ])
+      .toArray();
+
+    if (patientWithUserDetails.length === 0) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+    const newPrescription = {
+      _id: new ObjectId(),
+      patientId: new ObjectId(patientWithUserDetails[0]._id),
+      doctorId: new ObjectId(doctorId),
+      prescriptionDetails: req.file?.filename,
+      createdAt: new Date(),
+    };
+    const result = await prescriptionCollection.insertOne(newPrescription);
+    res.status(201).json({
+      message: "Prescription added successfully",
+      prescription: result.ops[0],
+    });
+  } catch (err) {
+    console.error("Error adding prescription:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 exports.getPrescription = async (req, res) => {
-  const { commentId } = req.params;
+  const { id } = req.params;
   try {
     await connectToDatabase();
 
-    const result = await reviewCollection.deleteOne({
-      _id: new ObjectId(commentId),
+    const prescription = await prescriptionCollection.findOne({
+      _id: new ObjectId(id),
     });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Comment not found" });
+
+    if (!prescription) {
+      return res.status(404).json({ message: "Prescription not found" });
     }
-    res.status(200).json({ message: "Comment deleted successfully" });
+
+    res.status(200).json(prescription);
   } catch (err) {
-    console.error("Error deleting comment:", err);
+    console.error("Error fetching prescription:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
