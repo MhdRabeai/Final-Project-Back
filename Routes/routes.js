@@ -39,6 +39,11 @@ const {
   addPharmacyInvoice,
   approveInvoice,
   addPrescriptionFromPatient,
+  getAllDrugs,
+  getDrugById,
+  updateDrugById,
+  addNewDrug,
+  deleteDrugById,
 
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
@@ -73,7 +78,7 @@ module.exports = (app) => {
     res.status(200).json({ Message: "Hello" });
   });
   app.get("/checkToken", isLogined, getData);
-  // *******************************************
+
   // Regetration & Auth
   app.get("/logout", logout);
   app.get("/doctors", doctors);
@@ -110,6 +115,8 @@ module.exports = (app) => {
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
   app.get("/prescription/:id ", getPrescription);
+
+  // صيدلي
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
   // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
   // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
