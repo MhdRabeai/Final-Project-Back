@@ -114,6 +114,11 @@ module.exports = (app) => {
   app.delete("/comment/:commentId ", deleteComment);
   app.post("/prescription ", addPrescription);
   app.get("/prescription/:id ", getPrescription);
+  app.get("/drugs",getAllDrugs)
+  app.get("/drugs/:id",getDrugById)
+  app.put("/drugs/:id",updateDrugById)
+  app.post("/drugs",addNewDrug)
+  app.delete("/drugs/:id",deleteDrugById)
 
   // صيدلي
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
