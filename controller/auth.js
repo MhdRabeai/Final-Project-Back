@@ -1506,70 +1506,54 @@ exports.addPharmacyInvoice = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-exports.getAllBlogs = async (req, res) => {
-  try {
-    await connectToDatabase();
-    const blogs = await blogCollection.find({}).toArray();
-    res.status(200).json(blogs);
-  } catch (error) {
-    console.error("Error fetching blogs:", error);
-    res.status(500).json({ message: "Error fetching blogs" });
-  }
-};
 
-exports.getBlogById = async (req, res) => {
+exports.createSession = async (req, res) => {
+  const { roomName, password, ownerId } = req.body;
+  console.log(roomName);
   try {
-    await connectToDatabase();
-    const blogId = req.params.id;
-    const blog = await blogCollection.findOne({ _id: new ObjectId(blogId) });
-    if (!blog) {
-      return res.status(404).json({ message: "Blog not found" });
+    const newRoom = {
+      _id: new ObjectId(),
+      roomName,
+      ownerId: new ObjectId(ownerId),
+      password,
+      participants: [],
+    };
+    const room = await sessionCollection.insertOne(newRoom);
+    console.log(room);
+    if (room) {
+      console.log("rooooom");
+      return res.status(200).json(room);
     }
-    res.status(200).json(blog);
-  } catch (error) {
-    console.error("Error fetching blog:", error);
-    res.status(500).json({ message: "Error fetching blog" });
+  } catch (err) {
+    console.log("Error", err.message);
+    return res.status(500).json({ error: "Failed to create room" });
   }
 };
-
-exports.editBlog = async (req, res) => {
+exports.joinRoom = async (req, res) => {
+  const { user_id, roomName, password } = req.body;
   try {
-    await connectToDatabase();
-    const blogId = req.params.id;
-    const updatedData = req.body;
-
-    const result = await blogCollection.updateOne(
-      { _id: new ObjectId(blogId) },
-      { $set: updatedData }
-    );
-
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
-
-    res.status(200).json({ message: "Blog updated successfully" });
-  } catch (error) {
-    console.error("Error editing blog:", error);
-    res.status(500).json({ message: "Error editing blog" });
-  }
-};
-
-exports.deleteBlog = async (req, res) => {
-  try {
-    await connectToDatabase();
-    const blogId = req.params.id;
-
-    const result = await blogCollection.deleteOne({
-      _id: new ObjectId(blogId),
+    const room = await sessionCollection.findOne({
+      roomName,
     });
+    if (!room) return res.status(404).json({ error: "Room not found" });
 
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Blog not found" });
-    }
-
-    res.status(200).json({ message: "Blog deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting blog:", error);
-    res.status(500).json({ message: "Error deleting blog" });
+    if (room.password && room.password !== password) {
+      return res.status(400).json({ error: "Incorrect password" });
+  }
+    socket.emit("joinRoom", { roomName, user_id });
+    await sessionCollection.updateOne(
+      { roomName: roomName },
+      {
+        $push: {
+          participants: {
+            user_id: new ObjectId(user_id),
+            joinedAt: new Date(),
+          },
+        },
+      }
+    );
+    res.json({ message: "Successfully joined the room" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to join room" });
   }
 };
