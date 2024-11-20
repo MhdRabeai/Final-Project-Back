@@ -92,7 +92,7 @@ module.exports = (app) => {
   app.get("/patientProfile/:id", patientProfile);
 
   app.post("/addPatient", addPatient);
-  app.delete("/deletePatient", deletePatient);
+  app.delete("/deletePatient/:id", deletePatient);
   app.put("/updatePatient", updatePatient);
   app.get("/doctorPatients", getDoctorPatients);
   app.get("/getAllBlogs", getAllBlogs);

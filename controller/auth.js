@@ -589,9 +589,9 @@ exports.addPatient = async (req, res) => {
   }
 };
 
-//delete  patient with id
+// Delete patient with id
 exports.deletePatient = async (req, res) => {
-  const { id } = req.query;
+  const { id } = req.params; 
 
   try {
     await connectToDatabase();
