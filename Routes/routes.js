@@ -31,6 +31,8 @@ const {
   addPharmacyInvoice,
   approveInvoice,
   addPrescriptionFromPatient,
+  createSession,
+  joinRoom,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -93,60 +95,9 @@ module.exports = (app) => {
   app.post("/pharmPrescriptions ", addPrescriptionFromPatient);
   // app.post("/pharmPrescriptions/:prescriptionId/invoice", addPharmacyInvoice);
   // app.post("/pharmPrescriptions/:prescriptionId/approve", approveInvoice);
-  // app.post("/api/rooms/create", async (req, res) => {
-  //   const { name, password } = req.body;
-  //   console.log(req.body);
-  //   // const userId = req.user.id;
+  app.post("/api/rooms/create", createSession);
 
-  //   try {
-  //     const newRoom = {
-  //       name,
-  //       // ownerId: "10",
-  //       password,
-  //       participants: [],
-  //     };
-  //     const room = await db.collection("rooms").insertOne(newRoom);
-  //     console.log(room);
-  //     res.status(201).json(room.ops[0]); // ops[0] للحصول على الكائن المحفوظ
-  //   } catch (err) {
-  //     res.status(500).json({ error: "Failed to create room" });
-  //   }
-  // });
-
-  // app.post("/api/rooms/join-room/:roomId", authMiddleware, async (req, res) => {
-  //   const { roomId } = req.params;
-  //   const { password } = req.body; // كلمة المرور هنا
-  //   const userId = req.user.id;
-
-  //   try {
-  //     const room = await db
-  //       .collection("rooms")
-  //       .findOne({ _id: new ObjectId(roomId) });
-  //     if (!room) return res.status(404).json({ error: "Room not found" });
-
-  //     // التحقق من كلمة مرور الغرفة
-  //     if (room.password && room.password !== password) {
-  //       return res.status(400).json({ error: "Incorrect password" });
-  //     }
-
-  //     // إضافة المستخدم إلى قائمة المشاركين
-  //     await db.collection("rooms").updateOne(
-  //       { _id: new ObjectId(roomId) },
-  //       {
-  //         $push: {
-  //           participants: {
-  //             userId: new ObjectId(userId),
-  //             joinedAt: new Date(),
-  //           },
-  //         },
-  //       }
-  //     );
-
-  //     res.json({ message: "Successfully joined the room" });
-  //   } catch (err) {
-  //     res.status(500).json({ error: "Failed to join room" });
-  //   }
-  // });
+  app.post("/api/rooms/join-room", isLogined, joinRoom);
 
   // app.post(
   //   "//api/roomsrequest-access/:roomId",

@@ -1022,6 +1022,62 @@ exports.addPrescriptionFromPatient = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+exports.createSession = async (req, res) => {
+  const { roomName, password, ownerId } = req.body;
+
+  try {
+    const newRoom = {
+      _id: new ObjectId(),
+      roomName,
+      ownerId: new ObjectId(ownerId),
+      password,
+      participants: [],
+    };
+    const room = await sessionCollection.insertOne(newRoom);
+    console.log(room);
+    if (room) {
+      console.log("rooooom");
+      return res.status(200).json(room);
+    }
+  } catch (err) {
+    console.log("Error", err.message);
+    // return res.status(500).json({ error: "Failed to create room" });
+  }
+};
+exports.joinRoom = async (req, res) => {
+  const { roomName, password } = req.body; // كلمة المرور هنا
+  const userId = req.user;
+  // console.log("userId", req.user);
+  // try {
+  //   const room = await db
+  //     .collection("rooms")
+  //     .findOne({ _id: new ObjectId(roomId) });
+  //   if (!room) return res.status(404).json({ error: "Room not found" });
+
+  //   // التحقق من كلمة مرور الغرفة
+  //   if (room.password && room.password !== password) {
+  //     return res.status(400).json({ error: "Incorrect password" });
+  //   }
+
+  //   // إضافة المستخدم إلى قائمة المشاركين
+  //   await db.collection("rooms").updateOne(
+  //     { _id: new ObjectId(roomId) },
+  //     {
+  //       $push: {
+  //         participants: {
+  //           userId: new ObjectId(userId),
+  //           joinedAt: new Date(),
+  //         },
+  //       },
+  //     }
+  //   );
+
+  //   res.json({ message: "Successfully joined the room" });
+  // } catch (err) {
+  //   res.status(500).json({ error: "Failed to join room" });
+  // }
+};
+
 // exports.addPharmacyInvoice = async (req, res) => {
 //   const { prescriptionId, invoiceData } = req.body;
 
