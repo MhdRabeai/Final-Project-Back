@@ -18,6 +18,13 @@ const {
   createAppointment,
   editAppointment,
   deleteAppointment,
+  getInvoices,
+  addComment,
+  getAppointment,
+  getAllAppointments,
+  getDoctorInvoices,
+  getCommentsByDoctor,
+  deleteComment,
 } = require("../controller/auth");
 const { isLogined } = require("../middleware/auth");
 // const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -62,9 +69,18 @@ module.exports = (app) => {
   app.post("/login", login);
   // app.post("/process-payment-real", createPayment);
   app.post("/process-payment", createFakePayment);
-  app.post("/booking", createAppointment);
-  app.patch("/edit-booking/:id", editAppointment);
-  app.patch("/delete-booking/:id", deleteAppointment);
+  app.get("/invoices", getInvoices);
+  app.get("/invoices/:id", getDoctorInvoices);
+  app.get("/booking", getAllAppointments);
+  app.get("/booking/:id", getAppointment);
+  app.post("/booking/:id", createAppointment);
+  app.patch("/booking/:id", editAppointment);
+  app.delete("/booking/:id", deleteAppointment);
+  app.post("/comment/:doctorId", addComment);
+  app.get("/comment/:doctorId", getCommentsByDoctor);
+  app.delete("/comment/:commentId ", deleteComment);
+  app.post("/rescription ", addPrescription);
+  app.get("/rescription/:id ", addPrescription);
 
   // app.post("/api/rooms/create", async (req, res) => {
   //   const { name, password } = req.body;

@@ -577,8 +577,57 @@ exports.createFakePayment = async (req, res) => {
     return res.status(500).send({ error: error.message });
   }
 };
+exports.getDoctorInvoices = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const invoices = await invoiceCollection
+      .find({ to: new ObjectId(id) })
+      .toArray();
+
+    res.status(200).json(invoices);
+  } catch (err) {
+    console.error("Error fetching invoices:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+exports.getInvoices = async (req, res) => {
+  try {
+    await connectToDatabase();
+
+    const invoices = await invoiceCollection.find({}).toArray();
+    res.status(200).json(invoices);
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+exports.getAllAppointments = async (req, res) => {
+  try {
+    const appointments = await appointmentCollection
+      .find({})
+      .sort({ selectedTime: 1 })
+      .toArray();
+    return res.status(200).json(appointments);
+  } catch (error) {
+    return res.status(500).json({ message: "Error", error });
+  }
+};
+exports.getAppointment = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await connectToDatabase();
+    const appointments = await appointmentCollection
+      .find({ to: new ObjectId(id) })
+      .toArray();
+    res.status(200).json(appointments);
+  } catch (err) {
+    return res.status(500).send({ error: err.message });
+  }
+};
 exports.createAppointment = async (req, res) => {
-  const { from, to, selectedTime, userCondition } = req.body;
+  const { from, selectedTime, userCondition } = req.body;
+  const { id } = req.params;
 
   try {
     await connectToDatabase();
@@ -619,7 +668,7 @@ exports.createAppointment = async (req, res) => {
     const doctorWithUserDetails = await doctorCollection
       .aggregate([
         {
-          $match: { _id: new ObjectId(to) },
+          $match: { _id: new ObjectId(id) },
         },
         {
           $lookup: {
@@ -717,5 +766,112 @@ exports.deleteAppointment = async (req, res) => {
     }
   } catch (err) {
     return res.status(500).send({ error: err.message });
+  }
+};
+exports.addComment = async (req, res) => {
+  const { id } = req.params;
+  const { from, comment, rating } = req.body;
+  try {
+    await connectToDatabase();
+    const patientWithUserDetails = await patientCollection
+      .aggregate([
+        {
+          $match: { user_id: new ObjectId(from) },
+        },
+        {
+          $lookup: {
+            from: "user",
+            localField: "user_id",
+            foreignField: "_id",
+            as: "userDetails",
+          },
+        },
+        {
+          $unwind: {
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+        {
+          $project: {
+            _id: 1,
+            user_id: 1,
+            questions: 1,
+            "userDetails.name": 1,
+            "userDetails.email": 1,
+            "userDetails.phone": 1,
+            "userDetails.avatar": 1,
+            "userDetails.role": 1,
+          },
+        },
+      ])
+      .toArray();
+    const newComment = {
+      _id: new ObjectId(),
+      from: patientWithUserDetails,
+      comment: comment,
+      rating: rating,
+      doctorId: new ObjectId(id),
+      createdAt: new Date(),
+    };
+    const result = await reviewCollection.insertOne(newComment);
+
+    res.status(201).json({
+      message: "Comment added successfully",
+      comment: result.ops[0],
+    });
+  } catch (err) {
+    console.error("Error adding comment:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+exports.getCommentsByDoctor = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await connectToDatabase();
+
+    const comments = await reviewCollection
+      .find({ doctorId: new ObjectId(id) })
+      .toArray();
+
+    res.status(200).json(comments);
+  } catch (err) {
+    console.error("Error fetching comments:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+exports.deleteComment = async (req, res) => {
+  const { commentId } = req.params;
+  try {
+    await connectToDatabase();
+
+    const result = await reviewCollection.deleteOne({
+      _id: new ObjectId(commentId),
+    });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting comment:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+exports.addPrescription = async (req, res) => {};
+exports.getPrescription = async (req, res) => {
+  const { commentId } = req.params;
+  try {
+    await connectToDatabase();
+
+    const result = await reviewCollection.deleteOne({
+      _id: new ObjectId(commentId),
+    });
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting comment:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
