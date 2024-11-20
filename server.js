@@ -7,7 +7,7 @@ const cors = require("cors");
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const app = express();
-
+require("./Routes/routes")(app);
 // const uri =
 //   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
 
@@ -77,7 +77,7 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-require("./Routes/routes")(app);
+
 connectDB().then(() => {
   app.listen(PORT, () =>
     console.log(`Server running on http://localhost:${PORT}`)
