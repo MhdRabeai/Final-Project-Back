@@ -1,9 +1,5 @@
 const path = require("path");
 const dotenv = require("dotenv");
-const { findRoomById } = require("../models/Room");
-const { getDB } = require("../config/db");
-const authMiddleware = require("../middleware/chatAuth");
-const { ObjectId } = require("mongodb");
 const {
   userRegister,
   register,
@@ -54,16 +50,7 @@ const {
   joinRoom,
 } = require("../controller/auth");
 const { isUser } = require("../middleware/auth");
-// const { MongoClient, ServerApiVersion } = require("mongodb");
-// const uri =
-//   "mongodb+srv://mhd:123456789**@platform.kej71.mongodb.net/?retryWrites=true&w=majority&appName=platform";
-// const client = new MongoClient(uri, {
-//   serverApi: {
-//     version: ServerApiVersion.v1,
-//     strict: true,
-//     deprecationErrors: true,
-//   },
-// });
+
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

@@ -19,8 +19,6 @@ const db = client.db("global");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    // user: "mhd.rabea.naser@gmail.com",
-    // pass: "seyy zkav nahk qgdi",
     user: process.env.EMAIL,
     pass: process.env.PASSWORD,
   },
@@ -31,15 +29,6 @@ const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const genAI = new GoogleGenerativeAI("AIzaSyA2vAY8hwjSSl3-JNrqMfjT4Xnv5bmwwzs");
-const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
-  generationConfig: {
-    candidateCount: 1,
-    stopSequences: ["x"],
-    maxOutputTokens: 20,
-    temperature: 1.0,
-  },
-});
 
 // ******************
 // Rols
@@ -538,7 +527,6 @@ exports.patients = async (req, res) => {
 //   }
 // };
 
-
 exports.addPatient = async (req, res) => {
   const {
     name,
@@ -556,11 +544,11 @@ exports.addPatient = async (req, res) => {
     const newUser = {
       name,
       email,
-      password, 
+      password,
       age,
       gender,
       phone,
-      avatar: "default-avatar.jpg", 
+      avatar: "default-avatar.jpg",
       role: "patient",
       isActive: true,
       createdAt: new Date(),
@@ -569,7 +557,7 @@ exports.addPatient = async (req, res) => {
     const userResult = await userCollection.insertOne(newUser);
 
     const newPatient = {
-      user_id: userResult.insertedId, 
+      user_id: userResult.insertedId,
       questions,
     };
 
@@ -587,7 +575,7 @@ exports.addPatient = async (req, res) => {
 
 // Delete patient with id
 exports.deletePatient = async (req, res) => {
-  const { id } = req.params; 
+  const { id } = req.params;
 
   try {
     await connectToDatabase();
@@ -634,7 +622,7 @@ exports.updatePatient = async (req, res) => {
 
 // Get patient with id
 exports.patientProfile = async (req, res) => {
-  const  id  = req.params.id; 
+  const id = req.params.id;
 
   try {
     await connectToDatabase();
@@ -644,20 +632,20 @@ exports.patientProfile = async (req, res) => {
     const patientWithUserDetails = await patientCollection
       .aggregate([
         {
-          $match: { _id: patientId }, 
+          $match: { _id: patientId },
         },
         {
           $lookup: {
-            from: "user", 
-            localField: "user_id", 
+            from: "user",
+            localField: "user_id",
             foreignField: "_id",
-            as: "userDetails", 
+            as: "userDetails",
           },
         },
         {
           $unwind: {
-            path: "$userDetails", 
-            preserveNullAndEmptyArrays: true,  
+            path: "$userDetails",
+            preserveNullAndEmptyArrays: true,
           },
         },
       ])
@@ -1518,7 +1506,10 @@ exports.addPharmacyInvoice = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2c06d20de0537538f38fc123cc2c5ccf3c79c556
 exports.getAllBlogs = async (req, res) => {
   try {
     await connectToDatabase();
@@ -1572,7 +1563,9 @@ exports.deleteBlog = async (req, res) => {
     await connectToDatabase();
     const blogId = req.params.id;
 
-    const result = await blogCollection.deleteOne({ _id: new ObjectId(blogId) });
+    const result = await blogCollection.deleteOne({
+      _id: new ObjectId(blogId),
+    });
 
     if (result.deletedCount === 0) {
       return res.status(404).json({ message: "Blog not found" });
@@ -1584,6 +1577,7 @@ exports.deleteBlog = async (req, res) => {
     res.status(500).json({ message: "Error deleting blog" });
   }
 };
+<<<<<<< HEAD
 
 
 exports.createSession = async (req, res) => {
@@ -1637,3 +1631,5 @@ exports.joinRoom = async (req, res) => {
   }
 };
 
+=======
+>>>>>>> 2c06d20de0537538f38fc123cc2c5ccf3c79c556
